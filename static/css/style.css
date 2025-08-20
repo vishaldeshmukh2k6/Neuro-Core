@@ -1,0 +1,12 @@
+
+:root { --radius: 16px; }
+html { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+.markdown pre code { display: block; padding: 1rem; border-radius: 12px; overflow: auto; }
+.markdown code:not(pre code) { background: rgba(0,0,0,0.06); padding: 2px 6px; border-radius: 6px; }
+.dark .markdown code:not(pre code) { background: rgba(255,255,255,0.08); }
+.markdown table { border-collapse: collapse; width: 100%; }
+.markdown th, .markdown td { border: 1px solid #e5e7eb; padding: 6px 8px; }
+.dark .markdown th, .dark .markdown td { border-color: #374151; }
+.copy-btn { position: absolute; top: 8px; right: 8px; font-size: 12px; background: #111827; color: #fff; padding: 4px 8px; border-radius: 8px; }
+.dark .copy-btn { background: #4b5563; }
+

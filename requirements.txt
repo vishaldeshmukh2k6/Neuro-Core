@@ -1,0 +1,4 @@
+flask
+python-dotenv
+openai>=1.42.0
+werkzeug
