@@ -1,4 +1,3 @@
-
 const messages = document.getElementById('messages');
 const promptEl = document.getElementById('prompt');
 const sendBtn = document.getElementById('sendBtn');
@@ -18,9 +17,12 @@ themeToggle?.addEventListener('click', () => {
   localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
 });
 
+// auto-resize textarea (agar textarea use karo to hi)
 promptEl.addEventListener('input', () => {
-  promptEl.style.height = 'auto';
-  promptEl.style.height = Math.min(promptEl.scrollHeight, 200) + 'px';
+  if (promptEl.tagName.toLowerCase() === "textarea") {
+    promptEl.style.height = 'auto';
+    promptEl.style.height = Math.min(promptEl.scrollHeight, 200) + 'px';
+  }
 });
 
 let lastImageUrl = null;
@@ -124,9 +126,12 @@ async function send(normal = true) {
   preview.classList.add('hidden');
   preview.innerHTML = '';
   promptEl.value = '';
-  promptEl.style.height = 'auto';
+  if (promptEl.tagName.toLowerCase() === "textarea") {
+    promptEl.style.height = 'auto';
+  }
 
   if (normal) {
+    // Normal send
     const res = await fetch('/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -135,6 +140,7 @@ async function send(normal = true) {
     const data = await res.json();
     addAssistantMessage(data.reply || '');
   } else {
+    // Stream send (Thinking…)
     const container = addAssistantStreamContainer();
     const res = await fetch('/stream', {
       method: 'POST',
@@ -167,12 +173,15 @@ async function send(normal = true) {
   refreshSidebar();
 }
 
+// --- Event Listeners ---
 sendBtn.addEventListener('click', () => send(true));
 streamBtn.addEventListener('click', () => send(false));
+
+// ✅ FIX: Only one keydown listener (Enter = Stream mode with Thinking…)
 promptEl.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
-    send(false);
+    send(false); // Stream mode
   }
 });
 
@@ -197,3 +206,4 @@ document.querySelectorAll('.markdown').forEach((node) => {
   node.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
 });
 refreshSidebar();
+
