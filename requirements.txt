@@ -4,3 +4,4 @@ openai>=1.42.0
 werkzeug
 ollama
 requests
+PyPDF2
