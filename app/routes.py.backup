@@ -3,7 +3,6 @@ from flask import Blueprint, render_template, request, jsonify, session, Respons
 from werkzeug.utils import secure_filename
 from .helpers import ensure_history, build_ollama_content, extract_personal_info, extract_teaching_command, extract_api_command, fetch_api_data, store_api_data
 from .openai_client import client
-from .langchain_client import langchain_client
 from .config import UPLOAD_DIR, SYSTEM_PROMPT, OLLAMA_MODEL
 
 bp = Blueprint("main", __name__)
@@ -32,16 +31,39 @@ def upload():
     f.save(dest)
     url = f"/static/uploads/{fname}"
     
+    # Debug: Check if file exists and is readable
+    debug_info = {
+        "file_exists": os.path.exists(dest),
+        "file_size": os.path.getsize(dest) if os.path.exists(dest) else 0,
+        "file_path": dest,
+        "file_name": name,
+        "file_extension": ext
+    }
+    
+    # Extract and store file content in memory
     from .helpers import extract_file_content_to_memory
     try:
         storage_result = extract_file_content_to_memory(dest)
+        debug_info["storage_result"] = storage_result
+        debug_info["storage_success"] = True
     except Exception as e:
+        debug_info["storage_error"] = str(e)
+        debug_info["storage_success"] = False
         storage_result = f"Error: {str(e)}"
+    
+    # Debug: Check memory after storage
+    from .helpers import ensure_memory
+    memory = ensure_memory()
+    debug_info["memory_after"] = {
+        "files_count": len(memory.get("files", {})),
+        "file_names": list(memory.get("files", {}).keys()) if "files" in memory else []
+    }
     
     return jsonify({
         "url": url, 
         "storage_result": storage_result,
-        "filename": name
+        "filename": name,
+        "debug": debug_info
     })
 
 
@@ -52,29 +74,24 @@ def call_openai_sync(user_msg: str, image_url: str | None = None) -> str:
     messages = build_ollama_content(user_msg, image_url, SYSTEM_PROMPT)
     resp = client.chat(model=OLLAMA_MODEL, messages=messages)
     
-    content = ""
+    # Robust extraction across possible response shapes
+    content = None
     try:
         if isinstance(resp, dict):
-            if "message" in resp and isinstance(resp["message"], dict):
-                content = resp["message"].get("content", "")
-            elif "content" in resp:
-                content = resp["content"]
-            elif "response" in resp:
-                content = resp["response"]
-        elif hasattr(resp, "message") and hasattr(resp.message, "content"):
-            content = resp.message.content
-        elif hasattr(resp, "content"):
-            content = resp.content
-        elif hasattr(resp, "response"):
-            content = resp.response
+            if isinstance(resp.get('message'), dict):
+                content = resp['message'].get('content')
+            if not content:
+                content = resp.get('response')
+        # Fallback: stringify
+        if not content:
+            content = str(resp)
     except Exception:
         content = ""
     
     if not isinstance(content, str):
         content = str(content or "")
-    
     content = content.strip()
-    return content or "I'm sorry, I couldn't generate a response. Please try again."
+    return content or "(no content)"
 
 @bp.post("/chat")
 def chat():
@@ -115,25 +132,13 @@ def chat():
                 reply = f" Error processing API request: {str(e)}"
     else:
         try:
-            # Use LangChain for better user-friendly responses
-            # Convert history to LangChain format
-            chat_history = []
-            for msg in history[:-1]:  # Exclude the current user message
-                if msg["role"] == "user":
-                    chat_history.append({"role": "user", "content": msg["content"]})
-                elif msg["role"] == "assistant":
-                    chat_history.append({"role": "assistant", "content": msg["content"]})
-            
-            reply = langchain_client.generate_response(user_msg, chat_history, image_url)
-        except Exception:
-            try:
-                reply = call_openai_sync(user_msg, image_url) if client else "AI client not configured."
-            except Exception as e2:
-                reply = f"AI service error: {e2}"
+            reply = call_openai_sync(user_msg, image_url) if client else "AI client not configured."
+        except Exception as e:
+            reply = f"AI service error: {e}"
 
     # Always ensure a string reply
     if reply is None:
-        reply = "I'm sorry, I couldn't generate a response. Please try again."
+        reply = ""
 
     history.append({"role": "assistant", "content": reply})
     session.modified = True
@@ -217,18 +222,16 @@ def stream():
     def ollama_stream():
         full_chunks = []
         try:
-            # Use LangChain for streaming
-            chat_history = []
-            for msg in history[:-1]:  # Exclude the current user message
-                if msg["role"] == "user":
-                    chat_history.append({"role": "user", "content": msg["content"]})
-                elif msg["role"] == "assistant":
-                    chat_history.append({"role": "assistant", "content": msg["content"]})
-            
-            for chunk in langchain_client.generate_streaming_response(user_msg, chat_history, image_url):
-                full_chunks.append(chunk)
-                yield f"data: {json.dumps({'delta': chunk})}\n\n"
-            
+            messages = build_ollama_content(user_msg, image_url, SYSTEM_PROMPT)
+            for event in client.chat(model=OLLAMA_MODEL, messages=messages, stream=True):
+                chunk = (event.get('message') or {}).get('content') if isinstance(event, dict) else None
+                if not chunk:
+                    # Some versions may stream as {'response': '...'}
+                    chunk = event.get('response') if isinstance(event, dict) else None
+                chunk = chunk or ""
+                if chunk:
+                    full_chunks.append(chunk)
+                    yield f"data: {json.dumps({'delta': chunk})}\n\n"
             final_text = "".join(full_chunks).strip()
             history.append({"role": "assistant", "content": final_text})
             session.modified = True

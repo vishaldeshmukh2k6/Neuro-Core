@@ -1,32 +1,34 @@
 const messages = document.getElementById('messages');
 const promptEl = document.getElementById('prompt');
-const sendBtn = document.getElementById('sendBtn');
 const streamBtn = document.getElementById('streamBtn');
 const fileInput = document.getElementById('fileInput');
 const preview = document.getElementById('preview');
 const clearBtn = document.getElementById('clearBtn');
 const sidebarHistory = document.getElementById('sidebarHistory');
 const themeToggle = document.getElementById('themeToggle');
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const sidebar = document.querySelector('aside');
 
 (() => {
   const theme = localStorage.getItem('theme') || 'light';
   if (theme === 'dark') document.documentElement.classList.add('dark');
 })();
+
 themeToggle?.addEventListener('click', () => {
   document.documentElement.classList.toggle('dark');
   localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
 });
 
-// auto-resize textarea (agar textarea use karo to hi)
-promptEl.addEventListener('input', () => {
-  if (promptEl.tagName.toLowerCase() === "textarea") {
-    promptEl.style.height = 'auto';
-    promptEl.style.height = Math.min(promptEl.scrollHeight, 200) + 'px';
-  }
+mobileMenuBtn?.addEventListener('click', () => {
+  sidebar?.classList.toggle('hidden');
+  sidebar?.classList.toggle('flex');
 });
 
+
+
 let lastImageUrl = null;
-fileInput.addEventListener('change', async (e) => {
+
+fileInput?.addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
   const fd = new FormData();
@@ -35,15 +37,22 @@ fileInput.addEventListener('change', async (e) => {
   const data = await res.json();
   if (data.url) {
     lastImageUrl = window.location.origin + data.url;
-    preview.classList.remove('hidden');
-    preview.innerHTML = `<div class="text-xs text-gray-500 mb-1">Attached image</div><img src="${data.url}" class="max-h-32 rounded-xl border">`;
+    preview?.classList.remove('hidden');
+    const isImage = file.type.startsWith('image/');
+    if (preview) {
+      if (isImage) {
+        preview.innerHTML = `<div class="text-xs text-gray-500 mb-1">Attached image</div><img src="${data.url}" class="max-h-32 rounded-xl border">`;
+      } else {
+        preview.innerHTML = `<div class="text-xs text-gray-500 mb-1">Attached file: ${file.name}</div><div class="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">${file.type || 'Unknown type'}</div>`;
+      }
+    }
   }
 });
 
 function scrollToBottom() {
   requestAnimationFrame(() => {
     const chat = document.getElementById('chat');
-    chat.scrollTop = chat.scrollHeight;
+    if (chat) chat.scrollTop = chat.scrollHeight;
   });
 }
 
@@ -69,6 +78,8 @@ function renderMarkdown(md) {
 }
 
 function addUserMessage(text, imageUrl) {
+  if (!messages) return;
+  
   const row = document.createElement('div');
   row.className = 'flex gap-3 justify-end';
   const bubble = document.createElement('div');
@@ -76,9 +87,8 @@ function addUserMessage(text, imageUrl) {
   bubble.textContent = text;
   const avatar = document.createElement('div');
   avatar.className = 'w-8 h-8 rounded-full bg-indigo-600/80 flex items-center justify-center';
-  avatar.textContent = 'U';
-  row.appendChild(bubble);
-  row.appendChild(avatar);
+  avatar.textContent = '👤';
+  row.append(bubble, avatar);
   messages.appendChild(row);
 
   if (imageUrl) {
@@ -91,106 +101,134 @@ function addUserMessage(text, imageUrl) {
 }
 
 function addAssistantMessage(md) {
+  if (!messages) return;
+  
   const row = document.createElement('div');
   row.className = 'flex gap-3';
   const avatar = document.createElement('div');
   avatar.className = 'w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center';
-  avatar.textContent = '🤖';
+  avatar.textContent = '֎';
   const body = renderMarkdown(md);
-  row.appendChild(avatar);
-  row.appendChild(body);
+  row.append(avatar, body);
   messages.appendChild(row);
   scrollToBottom();
 }
 
 function addAssistantStreamContainer() {
+  if (!messages) return null;
+  
   const row = document.createElement('div');
   row.className = 'flex gap-3';
   const avatar = document.createElement('div');
   avatar.className = 'w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center';
-  avatar.textContent = '🤖';
+  avatar.textContent = '֎';
   const body = document.createElement('div');
   body.className = 'prose dark:prose-invert max-w-none markdown relative';
   body.innerHTML = '<em>Thinking…</em>';
-  row.appendChild(avatar);
-  row.appendChild(body);
+  row.append(avatar, body);
   messages.appendChild(row);
   scrollToBottom();
   return body;
 }
 
-async function send(normal = true) {
+async function send(useStream = false) {
+  if (!promptEl) return;
+  
   const text = promptEl.value.trim();
   if (!text && !lastImageUrl) return;
+  
   addUserMessage(text || '(image only)', lastImageUrl);
-  preview.classList.add('hidden');
-  preview.innerHTML = '';
+  
+  preview?.classList.add('hidden');
+  if (preview) preview.innerHTML = '';
+  
   promptEl.value = '';
-  if (promptEl.tagName.toLowerCase() === "textarea") {
-    promptEl.style.height = 'auto';
-  }
 
-  if (normal) {
-    // Normal send
-    const res = await fetch('/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, image_url: lastImageUrl })
-    });
-    const data = await res.json();
-    addAssistantMessage(data.reply || '');
-  } else {
-    // Stream send (Thinking…)
+  if (useStream) {
     const container = addAssistantStreamContainer();
-    const res = await fetch('/stream', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message: text, image_url: lastImageUrl })
-    });
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder('utf-8');
-    let md = '';
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split('\n');
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          try {
-            const obj = JSON.parse(line.slice(6));
-            if (obj.delta) {
-              md += obj.delta;
-              container.innerHTML = renderMarkdown(md).innerHTML;
-            }
-          } catch {}
+    if (!container) return;
+    
+    try {
+      const res = await fetch('/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, image_url: lastImageUrl })
+      });
+      
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let fullResponse = '';
+      
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              if (data.delta) {
+                fullResponse += data.delta;
+                container.innerHTML = renderMarkdown(fullResponse).innerHTML;
+                scrollToBottom();
+              }
+              if (data.done) break;
+            } catch (e) {}
+          }
         }
       }
+    } catch (error) {
+      container.innerHTML = renderMarkdown('Error: Could not stream response.').innerHTML;
+    }
+  } else {
+    try {
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, image_url: lastImageUrl })
+      });
+      const data = await res.json();
+      addAssistantMessage(data.reply || 'No response received');
+    } catch (error) {
+      addAssistantMessage('Error: Could not send message. Please try again.');
     }
   }
+  
   lastImageUrl = null;
   scrollToBottom();
   refreshSidebar();
 }
 
-// --- Event Listeners ---
-sendBtn.addEventListener('click', () => send(true));
-streamBtn.addEventListener('click', () => send(false));
+streamBtn?.addEventListener('click', () => send(true));
 
-// ✅ FIX: Only one keydown listener (Enter = Stream mode with Thinking…)
-promptEl.addEventListener('keydown', (e) => {
+promptEl?.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
-    send(false); // Stream mode
+    send(true);
   }
 });
 
 clearBtn?.addEventListener('click', async () => {
-  await fetch('/clear', { method: 'POST' });
-  location.reload();
+  try {
+    await fetch('/clear', { method: 'POST' });
+  } catch (error) {
+    console.error('Failed to clear chat:', error);
+  }
+  
+  if (messages) messages.innerHTML = '<div class="text-sm text-gray-500">Start a conversation below…</div>';
+  if (sidebarHistory) sidebarHistory.innerHTML = '';
+  preview?.classList.add('hidden');
+  if (preview) preview.innerHTML = '';
+  if (promptEl) promptEl.value = '';
+  lastImageUrl = null;
 });
 
 function refreshSidebar() {
+  if (!sidebarHistory) return;
+  
   const items = Array.from(document.querySelectorAll('#messages .flex'))
     .slice(-10)
     .map((el) => {
@@ -205,5 +243,6 @@ document.querySelectorAll('.markdown').forEach((node) => {
   node.innerHTML = marked.parse(node.textContent);
   node.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
 });
+
 refreshSidebar();
 

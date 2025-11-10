@@ -21,5 +21,4 @@ SYSTEM_PROMPT = (
     "If a user asks you to fetch API data, do so and store it for future reference."
 )
 
-OPENAI_MODEL = "gpt-4o-mini"
 OLLAMA_MODEL = "llama3.2:1b"
