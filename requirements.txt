@@ -1,7 +1,9 @@
 flask
 python-dotenv
-openai>=1.42.0
 werkzeug
 ollama
 requests
 PyPDF2
+langchain
+langchain-ollama
+langchain-community
