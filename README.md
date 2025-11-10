@@ -88,7 +88,7 @@ ollama pull llama3.2:1b
 
 ### 3. Clone & Setup
 ```bash
-git clone <[repository-url](https://github.com/vishaldeshmukh2k6/Neuro-Core-AI-Assistant)>
+git clone https://github.com/vishaldeshmukh2k6/Neuro-Core-AI-Assistant
 cd Neuro-Core
 pip install -r requirements.txt
 ```
