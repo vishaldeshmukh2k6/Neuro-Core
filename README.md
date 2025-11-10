@@ -403,8 +403,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **Issues**: [GitHub Issues](https://github.com/vishaldeshmukh2k6/Neuro-Core)
 - **Discussions**: [GitHub Discussions](https://github.com/vishaldeshmukh2k6/Neuro-Core)
-- **Email**: support@your-domain.com
+- **Email**: vishaldeshmuk143@gmail.com
 
 ---
 
-**Made with ❤️ by [Vishal Deshmukh]**
+**Made with ❤️ by [ Vishal Deshmukh ]**
