@@ -6,18 +6,52 @@ const preview = document.getElementById('preview');
 const clearBtn = document.getElementById('clearBtn');
 const sidebarHistory = document.getElementById('sidebarHistory');
 const themeToggle = document.getElementById('themeToggle');
+const headerThemeToggle = document.getElementById('headerThemeToggle');
 const mobileMenuBtn = document.getElementById('mobileMenuBtn');
 const sidebar = document.querySelector('aside');
 
-(() => {
-  const theme = localStorage.getItem('theme') || 'light';
-  if (theme === 'dark') document.documentElement.classList.add('dark');
-})();
-
-themeToggle?.addEventListener('click', () => {
-  document.documentElement.classList.toggle('dark');
-  localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+console.log('Theme toggle elements:', {
+  themeToggle: !!themeToggle,
+  headerThemeToggle: !!headerThemeToggle,
+  sidebar: !!sidebar
 });
+
+// Initialize theme
+const savedTheme = localStorage.getItem('theme');
+const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const initialTheme = savedTheme || (systemDark ? 'dark' : 'light');
+
+if (initialTheme === 'dark') {
+  document.documentElement.classList.add('dark');
+}
+
+// Theme toggle function
+function toggleTheme() {
+  console.log('Theme toggle clicked');
+  const html = document.documentElement;
+  const isDark = html.classList.contains('dark');
+  
+  if (isDark) {
+    html.classList.remove('dark');
+    localStorage.setItem('theme', 'light');
+    console.log('Switched to light theme');
+  } else {
+    html.classList.add('dark');
+    localStorage.setItem('theme', 'dark');
+    console.log('Switched to dark theme');
+  }
+}
+
+// Add event listeners
+if (themeToggle) {
+  themeToggle.addEventListener('click', toggleTheme);
+  console.log('Sidebar theme toggle attached');
+}
+
+if (headerThemeToggle) {
+  headerThemeToggle.addEventListener('click', toggleTheme);
+  console.log('Header theme toggle attached');
+}
 
 mobileMenuBtn?.addEventListener('click', () => {
   sidebar?.classList.toggle('hidden');

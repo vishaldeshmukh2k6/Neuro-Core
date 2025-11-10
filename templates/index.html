@@ -6,6 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Chat (Flask + OpenAI)</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -38,13 +43,18 @@
               </svg>
             </button>
             <div class="w-8 h-8 rounded-xl bg-indigo-600"></div>
-            <div class="font-semibold hidden sm:block">Personal AI Assistant</div>
+            <div class="font-semibold hidden sm:block">Advanced AI Assistant</div>
             <div class="font-semibold sm:hidden">AI Chat</div>
             <span class="text-xs px-2 py-1 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 hidden sm:inline">Flask</span>
           </div>
           <div class="flex items-center gap-2">
-            <a class="text-sm underline" href="https://platform.openai.com/" target="_blank">OpenAI</a>
-            <a class="text-sm underline" href="https://ollama.ai/" target="_blank">Ollama</a>
+            <button id="headerThemeToggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800" title="Toggle theme">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+              </svg>
+            </button>
+            <a class="text-sm underline hidden sm:inline" href="https://platform.openai.com/" target="_blank">OpenAI</a>
+            <a class="text-sm underline hidden sm:inline" href="https://ollama.ai/" target="_blank">Ollama</a>
           </div>
         </div>
       </header>
