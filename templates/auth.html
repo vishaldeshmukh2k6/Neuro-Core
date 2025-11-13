@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced AI Assistant - Authentication</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    html { font-family: Inter, system-ui, sans-serif; }
+  </style>
+</head>
+<body class="h-full bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-indigo-900">
+  <div class="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+      <!-- Header -->
+      <div class="text-center">
+        <div class="w-16 h-16 mx-auto bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <h2 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          Advanced AI Assistant
+        </h2>
+        <p class="mt-2 text-gray-600 dark:text-gray-300">Sign in to access your AI assistant</p>
+      </div>
+
+      <!-- Auth Forms Container -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+        <!-- Login Form -->
+        <div id="loginForm" class="space-y-6">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white text-center">Sign In</h3>
+          
+          <form id="loginFormElement" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+              <input type="email" id="loginEmail" required
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                placeholder="Enter your email">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
+              <input type="password" id="loginPassword" required
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                placeholder="Enter your password">
+            </div>
+            
+            <button type="submit" 
+              class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-600 hover:to-purple-700 transition duration-200">
+              Sign In
+            </button>
+          </form>
+          
+          <p class="text-center text-sm text-gray-600 dark:text-gray-400">
+            Don't have an account? 
+            <button id="showSignup" class="text-indigo-600 hover:text-indigo-500 font-medium">Sign up</button>
+          </p>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signupForm" class="space-y-6 hidden">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white text-center">Create Account</h3>
+          
+          <form id="signupFormElement" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
+              <input type="text" id="signupName" required
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                placeholder="Enter your full name">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+              <input type="email" id="signupEmail" required
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                placeholder="Enter your email">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mobile Number</label>
+              <input type="tel" id="signupMobile" required
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                placeholder="Enter your mobile number">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
+              <input type="password" id="signupPassword" required
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                placeholder="Create a password (min 6 characters)">
+            </div>
+            
+            <button type="submit" 
+              class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-600 hover:to-purple-700 transition duration-200">
+              Create Account
+            </button>
+          </form>
+          
+          <p class="text-center text-sm text-gray-600 dark:text-gray-400">
+            Already have an account? 
+            <button id="showLogin" class="text-indigo-600 hover:text-indigo-500 font-medium">Sign in</button>
+          </p>
+        </div>
+
+        <!-- Error/Success Messages -->
+        <div id="authMessage" class="hidden mt-4 p-3 rounded-lg text-sm text-center"></div>
+        
+        <!-- Guest Access -->
+        <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
+          <div class="text-center">
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+              Want to try without signing up?
+            </p>
+            <button id="continueAsGuest" 
+              class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition duration-200">
+              Continue as Guest
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Theme detection
+    const theme = localStorage.getItem('theme') || 
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+
+    // Form switching
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const showSignup = document.getElementById('showSignup');
+    const showLogin = document.getElementById('showLogin');
+    const authMessage = document.getElementById('authMessage');
+
+    showSignup.addEventListener('click', () => {
+      loginForm.classList.add('hidden');
+      signupForm.classList.remove('hidden');
+      clearMessage();
+    });
+
+    showLogin.addEventListener('click', () => {
+      signupForm.classList.add('hidden');
+      loginForm.classList.remove('hidden');
+      clearMessage();
+    });
+
+    function showMessage(message, isError = false) {
+      authMessage.textContent = message;
+      authMessage.className = `mt-4 p-3 rounded-lg text-sm text-center ${
+        isError ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-green-100 text-green-700 border border-green-200'
+      }`;
+      authMessage.classList.remove('hidden');
+    }
+
+    function clearMessage() {
+      authMessage.classList.add('hidden');
+    }
+
+    // Login form handler
+    document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        const response = await fetch('/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          showMessage('Login successful! Redirecting...', false);
+          setTimeout(() => window.location.href = '/', 1500);
+        } else {
+          showMessage(data.error, true);
+        }
+      } catch (error) {
+        showMessage('Network error. Please try again.', true);
+      }
+    });
+
+    // Signup form handler
+    document.getElementById('signupFormElement').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('signupName').value;
+      const email = document.getElementById('signupEmail').value;
+      const mobile = document.getElementById('signupMobile').value;
+      const password = document.getElementById('signupPassword').value;
+
+      try {
+        const response = await fetch('/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, mobile, password })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          showMessage('Account created successfully! Please sign in.', false);
+          setTimeout(() => {
+            signupForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            clearMessage();
+          }, 2000);
+        } else {
+          showMessage(data.error, true);
+        }
+      } catch (error) {
+        showMessage('Network error. Please try again.', true);
+      }
+    });
+    
+    // Guest access handler
+    document.getElementById('continueAsGuest').addEventListener('click', () => {
+      window.location.href = '/';
+    });
+  </script>
+</body>
+</html>

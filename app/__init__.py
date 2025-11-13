@@ -16,6 +16,11 @@ def create_app():
     # Enable session debugging
     app.config['DEBUG'] = True
 
+    # Initialize database
+    from .database import init_database
+    with app.app_context():
+        init_database()
+
     # Register blueprints
     from .routes import bp
     app.register_blueprint(bp)

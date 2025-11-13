@@ -1,17 +1,76 @@
 import os, uuid, json
-from flask import Blueprint, render_template, request, jsonify, session, Response, stream_with_context
+from flask import Blueprint, render_template, request, jsonify, session, Response, stream_with_context, redirect, url_for
 from werkzeug.utils import secure_filename
 from .helpers import ensure_history, build_ollama_content, extract_personal_info, extract_teaching_command, extract_api_command, fetch_api_data, store_api_data
 from .openai_client import client
 from .langchain_client import langchain_client
 from .config import UPLOAD_DIR, SYSTEM_PROMPT, OLLAMA_MODEL
+from .auth import auth_manager
+from .database import user_db
 
 bp = Blueprint("main", __name__)
 
 @bp.route("/")
 def index():
     history = ensure_history()
-    return render_template("index.html", history=history)
+    user = auth_manager.get_current_user()
+    
+    return render_template("index.html", history=history, user=user)
+
+@bp.route("/auth")
+def auth_page():
+    return render_template("auth.html")
+
+@bp.post("/auth/login")
+def login():
+    data = request.get_json()
+    email = data.get('email', '').strip()
+    password = data.get('password', '')
+    
+    if not email or not password:
+        return jsonify({'success': False, 'error': 'Email and password required'})
+    
+    result = auth_manager.login_user(email, password)
+    return jsonify(result)
+
+@bp.post("/auth/signup")
+def signup():
+    data = request.get_json()
+    name = data.get('name', '').strip()
+    email = data.get('email', '').strip()
+    mobile = data.get('mobile', '').strip()
+    password = data.get('password', '')
+    
+    if not all([name, email, mobile, password]):
+        return jsonify({'success': False, 'error': 'All fields are required'})
+    
+    result = auth_manager.register_user(email, mobile, password, name)
+    return jsonify(result)
+
+@bp.post("/auth/logout")
+def logout():
+    result = auth_manager.logout_user()
+    return jsonify(result)
+
+@bp.get("/user-status")
+def get_user_status():
+    """Get current user status"""
+    user = auth_manager.get_current_user()
+    return jsonify({'is_authenticated': bool(user), 'user': user})
+
+@bp.route("/admin/users")
+def admin_users():
+    """Admin endpoint to view all users"""
+    if not auth_manager.is_authenticated():
+        return redirect(url_for('main.auth_page'))
+    
+    from .database import user_db
+    users = user_db.get_all_users()
+    
+    return jsonify({
+        'total_users': len(users),
+        'users': users
+    })
 
 @bp.post("/clear")
 def clear():
@@ -20,6 +79,9 @@ def clear():
 
 @bp.post("/upload")
 def upload():
+    if not auth_manager.is_authenticated():
+        return jsonify({"error": "File upload requires login"}), 401
+    
     if "file" not in request.files:
         return jsonify({"error": "no file"}), 400
     f = request.files["file"]
@@ -141,7 +203,10 @@ def chat():
 
 @bp.post("/teach")
 def teach():
-    """Endpoint to teach the AI new information"""
+    """Endpoint to teach the AI new information - Login required"""
+    if not auth_manager.is_authenticated():
+        return jsonify({"error": "Teaching requires login"}), 401
+    
     data = request.get_json(force=True)
     lesson = (data or {}).get("lesson", "").strip()
     
@@ -154,7 +219,10 @@ def teach():
 
 @bp.get("/memory")
 def get_memory():
-    """Get current user memory"""
+    """Get current user memory - Login required"""
+    if not auth_manager.is_authenticated():
+        return jsonify({"error": "Memory access requires login"}), 401
+    
     from .helpers import ensure_memory
     memory = ensure_memory()
     return jsonify({"memory": memory})
@@ -243,7 +311,10 @@ def stream():
 
 @bp.post("/api-fetch")
 def api_fetch():
-    """Direct endpoint to fetch and store API data"""
+    """Direct endpoint to fetch and store API data - Login required"""
+    if not auth_manager.is_authenticated():
+        return jsonify({"error": "API fetch requires login"}), 401
+    
     data = request.get_json(force=True)
     api_url = (data or {}).get("url", "").strip()
     api_key = (data or {}).get("api_key", "").strip() or None

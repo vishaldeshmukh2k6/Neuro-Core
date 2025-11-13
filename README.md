@@ -6,6 +6,7 @@ A powerful, memory-enabled AI chat application built with Flask and LangChain, f
 
 ### Core Capabilities
 - **Real-time Streaming**: Live response generation with typing indicators
+- **Voice Input**: Speech-to-text recording with Web Speech API
 - **Memory System**: Persistent user information and conversation context
 - **File Processing**: Upload and analyze PDFs, JSON, and text files
 - **API Integration**: Fetch and store data from external APIs
@@ -13,6 +14,7 @@ A powerful, memory-enabled AI chat application built with Flask and LangChain, f
 
 ### Advanced Features
 - **Multi-format Support**: Images, PDFs, JSON, and text files
+- **Voice Recognition**: Real-time speech-to-text transcription
 - **Context-aware Responses**: Uses uploaded files and API data for answers
 - **Session Management**: Browser-based conversation history
 - **Mobile Responsive**: Optimized for all device sizes
@@ -190,6 +192,7 @@ SYSTEM_PROMPT = "Your custom prompt"
 
 ### Basic Chat
 - Type your message and press Enter
+- Click microphone button for voice input
 - Responses stream in real-time
 - Use Shift+Enter for new lines
 
@@ -198,6 +201,12 @@ SYSTEM_PROMPT = "Your custom prompt"
 2. Select PDF, JSON, or text files
 3. Ask questions about the content
 4. AI uses file data for context-aware answers
+
+### Voice Input
+1. Click the 🎤 microphone button
+2. Speak your message clearly
+3. Text appears in real-time
+4. Click stop or wait for auto-complete
 
 ### Memory Features
 - **Personal Info**: "My name is John" → AI remembers
