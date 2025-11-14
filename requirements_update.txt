@@ -1,0 +1,4 @@
+# Add to requirements.txt for Google OAuth
+requests>=2.31.0
+google-auth>=2.23.0
+google-auth-oauthlib>=1.1.0

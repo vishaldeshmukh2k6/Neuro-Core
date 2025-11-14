@@ -47,6 +47,17 @@ def signup():
     result = auth_manager.register_user(email, mobile, password, name)
     return jsonify(result)
 
+@bp.post("/auth/google")
+def google_auth():
+    data = request.get_json()
+    credential = data.get('credential', '')
+    
+    if not credential:
+        return jsonify({'success': False, 'error': 'Google credential required'})
+    
+    result = auth_manager.google_login(credential)
+    return jsonify(result)
+
 @bp.post("/auth/logout")
 def logout():
     result = auth_manager.logout_user()

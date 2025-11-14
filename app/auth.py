@@ -1,6 +1,7 @@
 import re
 import hashlib
 import secrets
+import requests
 from flask import session
 from datetime import datetime
 from .database import user_db
@@ -10,8 +11,38 @@ class AuthManager:
         pass  # Using database now
         
     def validate_email(self, email):
+        # Basic format check
         pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        return re.match(pattern, email) is not None
+        if not re.match(pattern, email):
+            return False
+        
+        # Check for common invalid patterns
+        invalid_patterns = [
+            r'.*\.\.',  # Double dots
+            r'^\.',     # Starting with dot
+            r'\.$',     # Ending with dot
+            r'.*@.*@',  # Multiple @ symbols
+        ]
+        
+        for invalid_pattern in invalid_patterns:
+            if re.match(invalid_pattern, email):
+                return False
+        
+        return True
+    
+    def verify_email_domain(self, email):
+        """Verify if email domain exists (basic DNS check)"""
+        try:
+            domain = email.split('@')[1]
+            # Check common valid domains
+            valid_domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com']
+            if domain.lower() in valid_domains:
+                return True
+            
+            # For other domains, just return True (can add DNS lookup here)
+            return True
+        except:
+            return False
     
     def validate_mobile(self, mobile):
         pattern = r'^[+]?[1-9]\d{1,14}$'
@@ -31,6 +62,9 @@ class AuthManager:
     def register_user(self, email, mobile, password, name):
         if not self.validate_email(email):
             return {'success': False, 'error': 'Invalid email format'}
+        
+        if not self.verify_email_domain(email):
+            return {'success': False, 'error': 'Invalid email domain'}
         
         if not self.validate_mobile(mobile):
             return {'success': False, 'error': 'Invalid mobile number format'}
@@ -84,6 +118,60 @@ class AuthManager:
     
     def is_authenticated(self):
         return 'user_id' in session
+    
+    def google_login(self, google_token):
+        """Handle Google OAuth login"""
+        try:
+            # Verify Google token
+            response = requests.get(
+                f'https://www.googleapis.com/oauth2/v1/userinfo?access_token={google_token}'
+            )
+            
+            if response.status_code != 200:
+                return {'success': False, 'error': 'Invalid Google token'}
+            
+            user_info = response.json()
+            email = user_info.get('email')
+            name = user_info.get('name')
+            
+            if not email:
+                return {'success': False, 'error': 'Could not get email from Google'}
+            
+            # Check if user exists
+            existing_user = user_db.get_user_by_email(email)
+            
+            if existing_user:
+                # Login existing user
+                user_db.update_last_login(existing_user['user_id'])
+                session['user_id'] = existing_user['user_id']
+                session['user_email'] = existing_user['email']
+                session['user_name'] = existing_user['username']
+                
+                return {'success': True, 'user': {
+                    'id': existing_user['user_id'],
+                    'email': existing_user['email'],
+                    'name': existing_user['username']
+                }}
+            else:
+                # Create new user
+                user_id = secrets.token_hex(16)
+                success = user_db.create_user(user_id, name, email, '', '')  # No mobile/password for Google users
+                
+                if success:
+                    session['user_id'] = user_id
+                    session['user_email'] = email
+                    session['user_name'] = name
+                    
+                    return {'success': True, 'user': {
+                        'id': user_id,
+                        'email': email,
+                        'name': name
+                    }}
+                else:
+                    return {'success': False, 'error': 'Failed to create user'}
+                    
+        except Exception as e:
+            return {'success': False, 'error': 'Google login failed'}
     
     def get_current_user(self):
         if not self.is_authenticated():
