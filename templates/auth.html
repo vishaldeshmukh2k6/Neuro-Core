@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Advanced AI Assistant - Authentication</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script>
     tailwind.config = {
       darkMode: 'class'
@@ -60,6 +61,22 @@
             </button>
           </form>
           
+          <!-- Google Login -->
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-2 bg-white dark:bg-gray-800 text-gray-500">Or continue with</span>
+            </div>
+          </div>
+          
+          <div id="g_id_onload"
+               data-client_id="YOUR_GOOGLE_CLIENT_ID"
+               data-callback="handleCredentialResponse">
+          </div>
+          <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="continue_with" data-shape="rectangular" data-logo_alignment="left"></div>
+          
           <p class="text-center text-sm text-gray-600 dark:text-gray-400">
             Don't have an account? 
             <button id="showSignup" class="text-indigo-600 hover:text-indigo-500 font-medium">Sign up</button>
@@ -104,6 +121,18 @@
               Create Account
             </button>
           </form>
+          
+          <!-- Google Signup -->
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-300 dark:border-gray-600"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-2 bg-white dark:bg-gray-800 text-gray-500">Or sign up with</span>
+            </div>
+          </div>
+          
+          <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signup_with" data-shape="rectangular" data-logo_alignment="left"></div>
           
           <p class="text-center text-sm text-gray-600 dark:text-gray-400">
             Already have an account? 
@@ -226,6 +255,88 @@
         showMessage('Network error. Please try again.', true);
       }
     });
+    
+    // Email validation
+    function validateEmail(email) {
+      const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!pattern.test(email)) return false;
+      
+      // Check for invalid patterns
+      if (email.includes('..') || email.startsWith('.') || email.endsWith('.') || (email.match(/@/g) || []).length !== 1) {
+        return false;
+      }
+      
+      return true;
+    }
+    
+    // Real-time email validation
+    document.getElementById('loginEmail').addEventListener('input', (e) => {
+      const email = e.target.value;
+      if (email && !validateEmail(email)) {
+        e.target.style.borderColor = '#ef4444';
+      } else {
+        e.target.style.borderColor = '';
+      }
+    });
+    
+    document.getElementById('signupEmail').addEventListener('input', (e) => {
+      const email = e.target.value;
+      if (email && !validateEmail(email)) {
+        e.target.style.borderColor = '#ef4444';
+      } else {
+        e.target.style.borderColor = '';
+      }
+    });
+    
+    // Google login handlers
+    async function handleGoogleAuth(response) {
+      try {
+        const res = await fetch('/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ credential: response.credential })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          showMessage('Google login successful! Redirecting...', false);
+          setTimeout(() => window.location.href = '/', 1500);
+        } else {
+          showMessage(data.error, true);
+        }
+      } catch (error) {
+        showMessage('Google login failed. Please try again.', true);
+      }
+    }
+    
+    // Initialize Google Sign-In with retry mechanism
+    let googleInitialized = false;
+    
+    function initializeGoogle() {
+      if (typeof google !== 'undefined' && google.accounts) {
+        google.accounts.id.initialize({
+          client_id: '312345678901-abcdefghijklmnopqrstuvwxyz123456.apps.googleusercontent.com',
+          callback: handleGoogleAuth
+        });
+        googleInitialized = true;
+        console.log('Google Sign-In initialized');
+      } else {
+        setTimeout(initializeGoogle, 500);
+      }
+    }
+    
+    // Start initialization after DOM loads
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(initializeGoogle, 1000);
+    });
+    
+    // Google Sign-In callback
+    function handleCredentialResponse(response) {
+      handleGoogleAuth(response);
+    }
+    
+    window.handleCredentialResponse = handleCredentialResponse;
     
     // Guest access handler
     document.getElementById('continueAsGuest').addEventListener('click', () => {

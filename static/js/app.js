@@ -2,6 +2,7 @@
 const messages = document.getElementById('messagesContainer');
 const promptEl = document.getElementById('prompt');
 const streamBtn = document.getElementById('streamBtn');
+const stopBtn = document.getElementById('stopBtn');
 const fileInput = document.getElementById('fileInput');
 const preview = document.getElementById('preview');
 const clearBtn = document.getElementById('clearBtn');
@@ -36,6 +37,7 @@ let messageQueue = [];
 let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
+let currentStreamController = null;
 
 // Performance monitoring
 const performanceMetrics = {
@@ -171,18 +173,74 @@ if (headerThemeToggle) {
   headerThemeToggle.addEventListener('click', toggleTheme);
 }
 
-// Layout panel controls
+// Settings modal controls
 if (layoutBtn) {
   layoutBtn.addEventListener('click', () => {
-    layoutPanel?.classList.toggle('show');
+    document.getElementById('settingsModal')?.classList.remove('hidden');
   });
 }
 
-if (closePanelBtn) {
-  closePanelBtn.addEventListener('click', () => {
-    layoutPanel?.classList.remove('show');
-  });
+const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+const cancelSettingsBtn = document.getElementById('cancelSettingsBtn');
+const modalOverlay = document.getElementById('modalOverlay');
+const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+
+function closeSettingsModal() {
+  document.getElementById('settingsModal')?.classList.add('hidden');
 }
+
+closeSettingsBtn?.addEventListener('click', closeSettingsModal);
+cancelSettingsBtn?.addEventListener('click', closeSettingsModal);
+modalOverlay?.addEventListener('click', closeSettingsModal);
+
+// Settings tab navigation
+document.querySelectorAll('.settings-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const tabName = tab.dataset.tab;
+    
+    // Update active tab
+    document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    
+    // Update content
+    document.querySelectorAll('.settings-content').forEach(content => content.classList.add('hidden'));
+    document.getElementById(`${tabName}-tab`)?.classList.remove('hidden');
+    
+    // Update title
+    const titles = {
+      general: 'General Settings',
+      profile: 'Profile Settings', 
+      llm: 'AI Models',
+      interface: 'Interface Settings',
+      advanced: 'Advanced Settings'
+    };
+    document.getElementById('settingsTitle').textContent = titles[tabName] || 'Settings';
+  });
+});
+
+saveSettingsBtn?.addEventListener('click', () => {
+  // Save all settings
+  const settings = {
+    openaiKey: document.getElementById('openaiKey')?.value,
+    geminiKey: document.getElementById('geminiKey')?.value,
+    ollamaModel: document.getElementById('ollamaModel')?.value,
+    profileName: document.getElementById('profileName')?.value,
+    profileEmail: document.getElementById('profileEmail')?.value,
+    profileMobile: document.getElementById('profileMobile')?.value,
+    autoSave: document.getElementById('autoSave')?.checked,
+    soundNotif: document.getElementById('soundNotif')?.checked
+  };
+  
+  // Save to localStorage
+  Object.entries(settings).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') {
+      localStorage.setItem(key, value);
+    }
+  });
+  
+  showNotification('⚙️ Settings saved successfully!', 'success');
+  closeSettingsModal();
+});
 
 if (chatWidth) {
   chatWidth.addEventListener('change', (e) => {
@@ -235,7 +293,7 @@ logoutBtn?.addEventListener('click', async () => {
     try {
       showNotification('👋 Logging out...', 'info');
       await fetch('/auth/logout', { method: 'POST' });
-      window.location.href = '/auth';
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout failed:', error);
       showNotification('❌ Logout failed. Please try again.', 'error');
@@ -253,11 +311,25 @@ loginBtn?.addEventListener('click', () => {
   window.location.href = '/auth';
 });
 
-// Close layout panel when clicking outside
-document.addEventListener('click', (e) => {
-  if (layoutPanel && !layoutPanel.contains(e.target) && !layoutBtn?.contains(e.target)) {
-    layoutPanel.classList.remove('show');
-  }
+// Load saved settings on page load
+document.addEventListener('DOMContentLoaded', () => {
+  const settingsToLoad = [
+    'openaiKey', 'geminiKey', 'ollamaModel', 'profileName', 
+    'profileEmail', 'profileMobile', 'autoSave', 'soundNotif'
+  ];
+  
+  settingsToLoad.forEach(setting => {
+    const element = document.getElementById(setting);
+    const saved = localStorage.getItem(setting);
+    
+    if (element && saved) {
+      if (element.type === 'checkbox') {
+        element.checked = saved === 'true';
+      } else {
+        element.value = saved;
+      }
+    }
+  });
 });
 
 // Keyboard shortcuts
@@ -276,10 +348,15 @@ document.addEventListener('keydown', (e) => {
     saveLayoutSettings();
   }
   
-  // Ctrl/Cmd + Shift + L to toggle layout panel
-  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'L') {
+  // Ctrl/Cmd + Shift + S to open settings
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
     e.preventDefault();
-    layoutPanel?.classList.toggle('show');
+    document.getElementById('settingsModal')?.classList.remove('hidden');
+  }
+  
+  // Escape to close settings modal
+  if (e.key === 'Escape') {
+    closeSettingsModal();
   }
 });
 
@@ -510,7 +587,18 @@ async function send(useStream = false) {
   promptEl.disabled = true;
   streamBtn.disabled = true;
   
+  // Show stop button during streaming
+  if (useStream) {
+    streamBtn.classList.add('hidden');
+    stopBtn.classList.remove('hidden');
+  }
+  
   addUserMessage(text || '(image only)', lastImageUrl);
+  
+  // Create new chat if this is the first message
+  if (!currentChatId && text) {
+    createNewChat(text);
+  }
   
   preview?.classList.add('hidden');
   if (preview) preview.innerHTML = '';
@@ -523,13 +611,15 @@ async function send(useStream = false) {
     if (!container) return;
     
     try {
+      const abortController = new AbortController();
+      currentStreamController = abortController;
+      
       const res = await fetch('/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, image_url: lastImageUrl })
+        body: JSON.stringify({ message: text, image_url: lastImageUrl }),
+        signal: abortController.signal
       });
-      
-
       
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -571,8 +661,15 @@ async function send(useStream = false) {
       
     } catch (error) {
       hideTypingIndicator();
-      container.innerHTML = renderMarkdown('❌ **Error**: Could not stream response. Please try again.').innerHTML;
-      showNotification('❌ Connection error. Please check your internet.', 'error');
+      if (error.name === 'AbortError') {
+        container.innerHTML = renderMarkdown('⏹️ **Stopped**: Response generation was stopped by user.').innerHTML;
+        showNotification('⏹️ Response stopped', 'info');
+      } else {
+        container.innerHTML = renderMarkdown('❌ **Error**: Could not stream response. Please try again.').innerHTML;
+        showNotification('❌ Connection error. Please check your internet.', 'error');
+      }
+    } finally {
+      currentStreamController = null;
     }
   } else {
     try {
@@ -601,13 +698,18 @@ async function send(useStream = false) {
     }
   }
   
-  // Re-enable input
+  // Re-enable input and reset buttons
   promptEl.disabled = false;
   streamBtn.disabled = false;
+  streamBtn.classList.remove('hidden');
+  stopBtn.classList.add('hidden');
   promptEl.focus();
   
   lastImageUrl = null;
   scrollToBottom();
+  
+  // Save current chat and refresh sidebar
+  saveCurrentChat();
   refreshSidebar();
   
 
@@ -642,6 +744,14 @@ function regenerateMessage(button) {
 
 streamBtn?.addEventListener('click', () => send(true));
 
+// Stop button functionality
+stopBtn?.addEventListener('click', () => {
+  if (currentStreamController) {
+    currentStreamController.abort();
+    showNotification('⏹️ Stopping response...', 'info', 1500);
+  }
+});
+
 promptEl?.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
@@ -649,45 +759,105 @@ promptEl?.addEventListener('keydown', (e) => {
   }
 });
 
-clearBtn?.addEventListener('click', async () => {
-  try {
-    await fetch('/clear', { method: 'POST' });
-  } catch (error) {
-    console.error('Failed to clear chat:', error);
-  }
-  
-  if (messages) messages.innerHTML = '<div class="text-sm text-gray-500">Start a conversation below…</div>';
-  if (sidebarHistory) sidebarHistory.innerHTML = '';
-  preview?.classList.add('hidden');
-  if (preview) preview.innerHTML = '';
-  if (promptEl) promptEl.value = '';
-  lastImageUrl = null;
-});
+
 
 // Enhanced sidebar with better history management
 function refreshSidebar() {
   if (!sidebarHistory) return;
   
-  const messageElements = Array.from(document.querySelectorAll('#messagesContainer .message-container'));
-  const recentMessages = messageElements.slice(-10);
-  
-  const items = recentMessages.map((el, index) => {
-    const isUser = el.querySelector('.fa-user');
-    const text = el.innerText.slice(0, 60).replace(/\s+/g, ' ').trim();
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    return `
-      <div class="history-item px-4 py-3 rounded-xl text-xs cursor-pointer hover-lift micro-interaction" onclick="scrollToMessage(${messageElements.indexOf(el)})">
-        <div class="flex items-center gap-2 mb-1">
-          <i class="fas ${isUser ? 'fa-user text-gemini-blue' : 'fa-sparkles text-gemini-green'}"></i>
-          <span class="text-gray-500 dark:text-gray-400">${time}</span>
-        </div>
-        <div class="text-gray-700 dark:text-gray-300 line-clamp-2">${text}</div>
+  const items = chats.map(chat => `
+    <div class="chat-item px-3 py-3 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${currentChatId === chat.id ? 'bg-gemini-blue/10 border-l-2 border-gemini-blue' : ''}" data-id="${chat.id}">
+      <div class="flex items-center gap-2 mb-1">
+        <i class="fas fa-comment text-gemini-blue text-sm"></i>
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">${chat.name}</span>
       </div>
-    `;
-  }).join('');
+      <div class="text-xs text-gray-500 dark:text-gray-400">${new Date(chat.updated).toLocaleDateString()}</div>
+    </div>
+  `).join('');
   
   sidebarHistory.innerHTML = items || '<div class="text-center text-gray-500 dark:text-gray-400 text-xs py-8">No conversations yet</div>';
+  
+  // Add click handlers
+  document.querySelectorAll('.chat-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const chatId = item.dataset.id;
+      loadChat(chatId);
+    });
+  });
+}
+
+function saveCurrentChat() {
+  if (!currentChatId) return;
+  
+  const chat = chats.find(c => c.id === currentChatId);
+  if (chat) {
+    // Get messages from DOM
+    const messageElements = document.querySelectorAll('#messagesContainer .message-container');
+    const messages = [];
+    
+    messageElements.forEach(el => {
+      const isUser = el.querySelector('.fa-user');
+      const content = el.querySelector('.message-content, .markdown')?.textContent || '';
+      const imageUrl = el.querySelector('img')?.src || null;
+      
+      if (isUser) {
+        messages.push({ role: 'user', content, image_url: imageUrl });
+      } else {
+        messages.push({ role: 'assistant', content });
+      }
+    });
+    
+    chat.messages = messages;
+    chat.updated = new Date().toISOString();
+    localStorage.setItem('chats', JSON.stringify(chats));
+  }
+}
+
+function loadChat(chatId) {
+  const chat = chats.find(c => c.id === chatId);
+  if (!chat) return;
+  
+  currentChatId = chatId;
+  
+  // Update URL
+  window.history.pushState({}, '', `/chat?id=${chatId}`);
+  
+  // Render messages
+  if (messages) {
+    messages.innerHTML = '';
+    chat.messages.forEach(msg => {
+      if (msg.role === 'user') {
+        addUserMessage(msg.content, msg.image_url);
+      } else {
+        addAssistantMessage(msg.content);
+      }
+    });
+  }
+  
+  refreshSidebar();
+}
+
+function createNewChat(firstMessage = '') {
+  saveCurrentChat();
+  
+  const newChat = {
+    id: Date.now().toString(),
+    name: firstMessage ? firstMessage.slice(0, 30) + '...' : 'New Chat',
+    messages: [],
+    created: new Date().toISOString(),
+    updated: new Date().toISOString()
+  };
+  
+  chats.unshift(newChat);
+  currentChatId = newChat.id;
+  
+  // Update URL
+  window.history.pushState({}, '', `/chat?id=${newChat.id}`);
+  
+  localStorage.setItem('chats', JSON.stringify(chats));
+  
+  if (messages) messages.innerHTML = '';
+  refreshSidebar();
 }
 
 function scrollToMessage(index) {
@@ -706,7 +876,7 @@ document.querySelectorAll('.markdown').forEach((node) => {
   node.querySelectorAll('pre code').forEach((block) => hljs.highlightElement(block));
 });
 
-refreshSidebar();
+// refreshSidebar(); // Will be called after chats are initialized
 
 // Enhanced loading screen with realistic progress
 const loadingMessages = [
@@ -858,6 +1028,108 @@ voiceBtn?.addEventListener('click', () => {
 // Initialize user status check
 checkUserStatus();
 
+// Example prompts functionality
+document.querySelectorAll('.example-prompt').forEach(button => {
+  button.addEventListener('click', () => {
+    const promptText = button.querySelector('span').textContent;
+    if (promptEl) {
+      promptEl.value = promptText;
+      promptEl.focus();
+      showNotification('💡 Example prompt loaded', 'success', 1500);
+    }
+  });
+});
+
+// AI Model selection functionality
+const aiModelSelect = document.getElementById('aiModelSelect');
+const currentModelDisplay = document.getElementById('currentModel');
+
+if (aiModelSelect) {
+  // Load saved model preference
+  const savedModel = localStorage.getItem('selectedAIModel') || 'ollama';
+  aiModelSelect.value = savedModel;
+  updateCurrentModelDisplay(savedModel);
+  
+  aiModelSelect.addEventListener('change', async (e) => {
+    const selectedModel = e.target.value;
+    
+    try {
+      // Send model selection to backend
+      const response = await fetch('/set-ai-model', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: selectedModel })
+      });
+      
+      if (response.ok) {
+        localStorage.setItem('selectedAIModel', selectedModel);
+        updateCurrentModelDisplay(selectedModel);
+        showNotification(`🤖 Switched to ${getModelDisplayName(selectedModel)}`, 'success');
+      } else {
+        const data = await response.json();
+        showNotification(`❌ ${data.error || 'Failed to switch model'}`, 'error');
+        // Revert selection
+        aiModelSelect.value = localStorage.getItem('selectedAIModel') || 'ollama';
+      }
+    } catch (error) {
+      console.error('Error switching model:', error);
+      showNotification('❌ Connection error while switching model', 'error');
+      // Revert selection
+      aiModelSelect.value = localStorage.getItem('selectedAIModel') || 'ollama';
+    }
+  });
+}
+
+function updateCurrentModelDisplay(model) {
+  if (currentModelDisplay) {
+    currentModelDisplay.textContent = getModelDisplayName(model);
+  }
+}
+
+function getModelDisplayName(model) {
+  const modelNames = {
+    'ollama': 'Ollama',
+    'openai': 'ChatGPT',
+    'gemini': 'Gemini'
+  };
+  return modelNames[model] || 'Unknown';
+}
+
+// Check available AI models on page load
+async function checkAvailableModels() {
+  try {
+    const response = await fetch('/available-models');
+    const data = await response.json();
+    
+    if (aiModelSelect && data.models) {
+      // Update select options based on available models
+      const options = aiModelSelect.querySelectorAll('option');
+      options.forEach(option => {
+        const model = option.value;
+        if (!data.models.includes(model)) {
+          option.disabled = true;
+          option.textContent += ' (Not Available)';
+        }
+      });
+      
+      // If current selection is not available, switch to first available
+      const currentModel = localStorage.getItem('selectedAIModel') || 'ollama';
+      if (!data.models.includes(currentModel) && data.models.length > 0) {
+        const firstAvailable = data.models[0];
+        aiModelSelect.value = firstAvailable;
+        localStorage.setItem('selectedAIModel', firstAvailable);
+        updateCurrentModelDisplay(firstAvailable);
+        showNotification(`🔄 Switched to ${getModelDisplayName(firstAvailable)} (only available model)`, 'info');
+      }
+    }
+  } catch (error) {
+    console.error('Error checking available models:', error);
+  }
+}
+
+// Initialize model checking
+checkAvailableModels();
+
 // Enhanced loading screen completion
 window.addEventListener('load', () => {
   // Ensure all resources are loaded
@@ -923,9 +1195,144 @@ function initializeRevealAnimations() {
   elements.forEach(el => observer.observe(el));
 }
 
+// Chatbot management
+let chatbots = JSON.parse(localStorage.getItem('chatbots') || '[]');
+let currentChatbot = null;
+
+// Chat management
+let chats = JSON.parse(localStorage.getItem('chats') || '[]');
+let currentChatId = null;
+
+// New chat button
+document.getElementById('newChatBtn')?.addEventListener('click', () => {
+  currentChatbot = null;
+  createNewChat();
+  showNotification('🆕 New chat started', 'success', 1500);
+});
+
+// New chatbot modal
+const newChatbotBtn = document.getElementById('newChatbotBtn');
+const newChatbotModal = document.getElementById('newChatbotModal');
+const chatbotModalOverlay = document.getElementById('chatbotModalOverlay');
+const cancelChatbotBtn = document.getElementById('cancelChatbotBtn');
+const createChatbotBtn = document.getElementById('createChatbotBtn');
+
+function closeChatbotModal() {
+  newChatbotModal?.classList.add('hidden');
+  document.getElementById('chatbotName').value = '';
+  document.getElementById('chatbotKnowledge').value = '';
+  document.getElementById('chatbotFiles').value = '';
+}
+
+newChatbotBtn?.addEventListener('click', () => {
+  newChatbotModal?.classList.remove('hidden');
+});
+
+chatbotModalOverlay?.addEventListener('click', closeChatbotModal);
+cancelChatbotBtn?.addEventListener('click', closeChatbotModal);
+
+createChatbotBtn?.addEventListener('click', async () => {
+  const name = document.getElementById('chatbotName')?.value.trim();
+  const knowledge = document.getElementById('chatbotKnowledge')?.value.trim();
+  const files = document.getElementById('chatbotFiles')?.files;
+  
+  if (!name) {
+    showNotification('❌ Please enter a chatbot name', 'error');
+    return;
+  }
+  
+  let fileContent = '';
+  
+  // Process uploaded files
+  if (files && files.length > 0) {
+    for (let file of files) {
+      try {
+        const text = await file.text();
+        fileContent += `\n\n--- ${file.name} ---\n${text}`;
+      } catch (error) {
+        console.error('Error reading file:', error);
+      }
+    }
+  }
+  
+  const combinedKnowledge = knowledge + fileContent;
+  
+  if (!combinedKnowledge.trim()) {
+    showNotification('❌ Please provide knowledge base or upload files', 'error');
+    return;
+  }
+  
+  const newChatbot = {
+    id: Date.now().toString(),
+    name,
+    knowledge: combinedKnowledge,
+    created: new Date().toISOString()
+  };
+  
+  chatbots.push(newChatbot);
+  localStorage.setItem('chatbots', JSON.stringify(chatbots));
+  
+  renderChatbots();
+  closeChatbotModal();
+  showNotification(`🤖 Chatbot "${name}" created successfully!`, 'success');
+});
+
+function renderChatbots() {
+  const chatbotsList = document.getElementById('chatbotsList');
+  if (!chatbotsList) return;
+  
+  chatbotsList.innerHTML = chatbots.map(bot => `
+    <div class="chatbot-item p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors" data-id="${bot.id}">
+      <div class="flex items-center gap-2">
+        <i class="fas fa-robot text-gemini-blue text-sm"></i>
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">${bot.name}</span>
+      </div>
+      <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${new Date(bot.created).toLocaleDateString()}</div>
+    </div>
+  `).join('');
+  
+  // Add click handlers
+  document.querySelectorAll('.chatbot-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const botId = item.dataset.id;
+      const bot = chatbots.find(b => b.id === botId);
+      if (bot) {
+        currentChatbot = bot;
+        if (messages) messages.innerHTML = '';
+        showNotification(`🤖 Switched to ${bot.name}`, 'success', 1500);
+      }
+    });
+  });
+}
+
 // Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
   initializeRevealAnimations();
+  renderChatbots();
+  
+  // Load chat from URL if present
+  const urlParams = new URLSearchParams(window.location.search);
+  const chatId = urlParams.get('id');
+  
+  if (chatId && chats.find(c => c.id === chatId)) {
+    loadChat(chatId);
+  }
+  
+  refreshSidebar();
   console.log('🎨 Advanced Gemini-style UI initialized successfully!');
+  
+  // Initialize example prompts after DOM is loaded
+  setTimeout(() => {
+    document.querySelectorAll('.example-prompt').forEach(button => {
+      button.addEventListener('click', () => {
+        const promptText = button.querySelector('span').textContent;
+        if (promptEl) {
+          promptEl.value = promptText;
+          promptEl.focus();
+          showNotification('💡 Example prompt loaded', 'success', 1500);
+        }
+      });
+    });
+  }, 100);
 });
 

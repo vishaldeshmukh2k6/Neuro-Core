@@ -601,6 +601,16 @@ html {
   opacity: 0.8;
 }
 
+/* Settings modal styles */
+.settings-tab.active {
+  background: rgba(79, 70, 229, 0.1);
+  color: #4f46e5;
+}
+
+.settings-tab.active i {
+  color: #4f46e5;
+}
+
 /* Performance Optimizations */
 .gpu-accelerated {
   transform: translateZ(0);

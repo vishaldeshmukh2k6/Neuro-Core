@@ -11,7 +11,13 @@ from .database import user_db
 bp = Blueprint("main", __name__)
 
 @bp.route("/")
-def index():
+def home():
+    """Landing page"""
+    return render_template("home.html")
+
+@bp.route("/chat")
+def chat_interface():
+    """Main chat interface"""
     history = ensure_history()
     user = auth_manager.get_current_user()
     
@@ -47,6 +53,17 @@ def signup():
     result = auth_manager.register_user(email, mobile, password, name)
     return jsonify(result)
 
+@bp.post("/auth/google")
+def google_auth():
+    data = request.get_json()
+    credential = data.get('credential', '')
+    
+    if not credential:
+        return jsonify({'success': False, 'error': 'Google credential required'})
+    
+    result = auth_manager.google_login(credential)
+    return jsonify(result)
+
 @bp.post("/auth/logout")
 def logout():
     result = auth_manager.logout_user()
@@ -58,19 +75,7 @@ def get_user_status():
     user = auth_manager.get_current_user()
     return jsonify({'is_authenticated': bool(user), 'user': user})
 
-@bp.route("/admin/users")
-def admin_users():
-    """Admin endpoint to view all users"""
-    if not auth_manager.is_authenticated():
-        return redirect(url_for('main.auth_page'))
-    
-    from .database import user_db
-    users = user_db.get_all_users()
-    
-    return jsonify({
-        'total_users': len(users),
-        'users': users
-    })
+
 
 @bp.post("/clear")
 def clear():
@@ -358,196 +363,31 @@ def config():
     model_name = OLLAMA_MODEL
     return jsonify({"using_openai": False, "model": model_name})
 
-@bp.get("/files")
-def get_stored_files():
-    """Get list of stored files and their metadata"""
-    from .helpers import ensure_memory
-    memory = ensure_memory()
-    files = memory.get("files", {})
+@bp.post("/set-ai-model")
+def set_ai_model():
+    """Set the current AI model"""
+    data = request.get_json()
+    model = data.get('model', '').strip()
     
-    file_list = []
-    for file_name, file_info in files.items():
-        file_list.append({
-            "name": file_name,
-            "type": file_info["type"],
-            "uploaded_at": file_info["uploaded_at"],
-            "content_length": len(file_info["content"])
-        })
+    if not model:
+        return jsonify({"error": "Model name required"}), 400
     
-    return jsonify({"files": file_list})
-
-@bp.get("/file/<filename>")
-def get_file_content(filename):
-    """Get content of a specific stored file"""
-    from .helpers import ensure_memory
-    memory = ensure_memory()
-    files = memory.get("files", {})
-    
-    if filename in files:
-        file_info = files[filename]
-        return jsonify({
-            "name": filename,
-            "type": file_info["type"],
-            "content": file_info["content"][:5000],  # Limit content for display
-            "uploaded_at": file_info["uploaded_at"]
-        })
-    else:
-        return jsonify({"error": "File not found"}), 404
-
-@bp.get("/debug/memory")
-def debug_memory():
-    """Debug endpoint to see current memory state"""
-    from .helpers import ensure_memory
-    memory = ensure_memory()
-    
-    debug_info = {
-        "memory_keys": list(memory.keys()),
-        "files_count": len(memory.get("files", {})),
-        "file_names": list(memory.get("files", {}).keys()) if "files" in memory else [],
-        "memory_size": len(str(memory)),
-        "session_id": session.get("_id", "unknown")
-    }
-    
-    return jsonify(debug_info)
-
-@bp.get("/debug/files")
-def debug_files():
-    """Debug endpoint to see file storage details"""
-    from .helpers import ensure_memory
-    memory = ensure_memory()
-    files = memory.get("files", {})
-    
-    file_details = []
-    for file_name, file_info in files.items():
-        file_details.append({
-            "name": file_name,
-            "type": file_info["type"],
-            "content_length": len(file_info["content"]),
-            "content_preview": file_info["content"][:200] + "..." if len(file_info["content"]) > 200 else file_info["content"],
-            "uploaded_at": file_info["uploaded_at"]
-        })
-    
-    return jsonify({"files": file_details, "total_files": len(files)})
-
-@bp.get("/debug/apis")
-def debug_apis():
-    """Debug endpoint to see stored API data"""
-    from .helpers import load_global_memory
-    global_memory = load_global_memory()
-    apis = global_memory.get("apis", {})
-    
-    api_details = []
-    for api_key, api_info in apis.items():
-        api_details.append({
-            "key": api_key,
-            "url": api_info["url"],
-            "fetched_at": api_info["fetched_at"],
-            "api_key_provided": api_info["api_key_provided"],
-            "data_type": type(api_info["data"]).__name__,
-            "data_preview": str(api_info["data"])[:500] + "..." if len(str(api_info["data"])) > 500 else str(api_info["data"])
-        })
-    
-    return jsonify({"apis": api_details, "total_apis": len(apis)})
-
-@bp.get("/debug/global-memory")
-def debug_global_memory():
-    """Debug endpoint to see the complete global memory structure"""
-    from .helpers import load_global_memory
-    global_memory = load_global_memory()
-    
-    memory_summary = {
-        "total_keys": len(global_memory.keys()),
-        "keys": list(global_memory.keys()),
-        "files_count": len(global_memory.get("files", {})),
-        "apis_count": len(global_memory.get("apis", {})),
-        "lessons_count": len(global_memory.get("lessons", [])),
-        "memory_size": len(str(global_memory))
-    }
-    
-    return jsonify(memory_summary)
-
-@bp.get("/test-session")
-def test_session():
-    """Test if Flask sessions are working"""
-    if "test_counter" not in session:
-        session["test_counter"] = 0
-    
-    session["test_counter"] += 1
-    session.modified = True
-    
+    session['selected_ai_model'] = model
     return jsonify({
-        "counter": session["test_counter"],
-        "session_id": session.get("_id", "unknown"),
-        "session_keys": list(session.keys())
+        "success": True, 
+        "model": model,
+        "message": f"Switched to {model}"
     })
 
-@bp.get("/test-file-extraction")
-def test_file_extraction():
-    """Test file content extraction manually"""
-    from .helpers import extract_file_content_to_memory, ensure_memory
-    
-    # Test with an existing PDF file
-    test_file = "static/uploads/2e4980452e0b4d91bd05e2d675f39ccd.pdf"
-    
-    if not os.path.exists(test_file):
-        return jsonify({"error": "Test file not found"})
-    
-    # Extract content
-    result = extract_file_content_to_memory(test_file)
-    
-    # Check memory
-    memory = ensure_memory()
-    
+@bp.get("/available-models")
+def get_available_models():
+    """Get list of available AI models"""
     return jsonify({
-        "extraction_result": result,
-        "memory_state": {
-            "files_count": len(memory.get("files", {})),
-            "file_names": list(memory.get("files", {}).keys()) if "files" in memory else [],
-            "memory_keys": list(memory.keys())
-        }
+        "models": ["ollama", "openai", "gemini"],
+        "current": session.get('selected_ai_model', 'ollama'),
+        "total": 3
     })
 
-@bp.get("/test-context")
-def test_context():
-    """Test endpoint to debug context retrieval"""
-    from .helpers import get_file_context_for_question, get_api_context_for_question, get_memory_context
-    
-    test_question = "What is Swadesi Way?"
-    
-    memory_context = get_memory_context()
-    file_context = get_file_context_for_question(test_question)
-    api_context = get_api_context_for_question(test_question)
-    
-    return jsonify({
-        "test_question": test_question,
-        "memory_context_length": len(memory_context) if memory_context else 0,
-        "memory_context_preview": memory_context[:500] if memory_context else "None",
-        "file_context_length": len(file_context) if file_context else 0,
-        "file_context_preview": file_context[:500] if file_context else "None",
-        "api_context_length": len(api_context) if api_context else 0,
-        "api_context_preview": api_context[:500] if api_context else "None"
-    })
 
-@bp.get("/test-messages")
-def test_messages():
-    """Test endpoint to see what messages would be sent to the AI"""
-    from .helpers import build_ollama_content
-    from .config import SYSTEM_PROMPT
-    
-    test_question = "What is Swadesi Way?"
-    
-    messages = build_ollama_content(test_question, None, SYSTEM_PROMPT)
-    
-    message_details = []
-    for i, msg in enumerate(messages):
-        message_details.append({
-            "role": msg["role"],
-            "content_length": len(msg["content"]),
-            "content_preview": msg["content"][:500] + "..." if len(msg["content"]) > 500 else msg["content"]
-        })
-    
-    return jsonify({
-        "test_question": test_question,
-        "total_messages": len(messages),
-        "messages": message_details
-    })
+
+

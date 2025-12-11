@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Neuro-Core AI Assistant</title>
+  <title>Chat - Neuro-Core AI Assistant</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -120,37 +120,227 @@
     </div>
   </div>
 
-  <!-- Layout Customization Panel -->
-  <div id="layoutPanel" class="fixed top-4 right-4 z-40 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl p-4 shadow-2xl border border-gray-200 dark:border-gray-700 transform translate-x-full transition-transform duration-300">
-    <div class="flex items-center justify-between mb-4">
-      <h3 class="font-semibold text-sm">Layout Settings</h3>
-      <button id="closePanelBtn" class="p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
-        <i class="fas fa-times text-xs"></i>
-      </button>
-    </div>
-    <div class="space-y-3">
-      <div>
-        <label class="text-xs text-gray-600 dark:text-gray-400 block mb-1">Chat Width</label>
-        <select id="chatWidth" class="w-full text-xs p-2 rounded-lg bg-gray-100 dark:bg-gray-700 border-0">
-          <option value="max-w-2xl">Narrow</option>
-          <option value="max-w-4xl" selected>Medium</option>
-          <option value="max-w-6xl">Wide</option>
-          <option value="max-w-full">Full</option>
-        </select>
-      </div>
-      <div>
-        <label class="text-xs text-gray-600 dark:text-gray-400 block mb-1">Message Style</label>
-        <select id="messageStyle" class="w-full text-xs p-2 rounded-lg bg-gray-100 dark:bg-gray-700 border-0">
-          <option value="bubble" selected>Bubble</option>
-          <option value="card">Card</option>
-          <option value="minimal">Minimal</option>
-        </select>
-      </div>
-      <div>
-        <label class="text-xs text-gray-600 dark:text-gray-400 block mb-1">Sidebar</label>
-        <button id="toggleSidebar" class="w-full text-xs p-2 rounded-lg bg-gemini-blue text-white hover:bg-blue-600 transition-colors">
-          Toggle Sidebar
-        </button>
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="fixed inset-0 z-50 hidden">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" id="modalOverlay"></div>
+    <div class="fixed inset-0 flex items-center justify-center p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-5xl h-[600px] overflow-hidden flex">
+        <!-- Settings Sidebar -->
+        <div class="w-64 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+          <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Settings</h2>
+          </div>
+          <nav class="flex-1 p-4 space-y-2">
+            <button class="settings-tab active w-full text-left px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" data-tab="general">
+              <i class="fas fa-cog mr-3 text-gray-500"></i>
+              <span class="text-sm font-medium">General</span>
+            </button>
+            <button class="settings-tab w-full text-left px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" data-tab="profile">
+              <i class="fas fa-user mr-3 text-gray-500"></i>
+              <span class="text-sm font-medium">Profile</span>
+            </button>
+            <button class="settings-tab w-full text-left px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" data-tab="llm">
+              <i class="fas fa-robot mr-3 text-gray-500"></i>
+              <span class="text-sm font-medium">AI Models</span>
+            </button>
+            <button class="settings-tab w-full text-left px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" data-tab="interface">
+              <i class="fas fa-palette mr-3 text-gray-500"></i>
+              <span class="text-sm font-medium">Interface</span>
+            </button>
+            <button class="settings-tab w-full text-left px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" data-tab="advanced">
+              <i class="fas fa-sliders-h mr-3 text-gray-500"></i>
+              <span class="text-sm font-medium">Advanced</span>
+            </button>
+          </nav>
+        </div>
+        
+        <!-- Settings Content -->
+        <div class="flex-1 flex flex-col">
+          <!-- Header -->
+          <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+            <h3 id="settingsTitle" class="text-lg font-medium text-gray-900 dark:text-white">General Settings</h3>
+            <button id="closeSettingsBtn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <i class="fas fa-times text-gray-500"></i>
+            </button>
+          </div>
+          
+          <!-- Content Area -->
+          <div class="flex-1 overflow-y-auto p-6">
+            <!-- General Tab -->
+            <div id="general-tab" class="settings-content">
+              <div class="space-y-6">
+                <div>
+                  <h4 class="text-base font-medium text-gray-900 dark:text-white mb-4">Application Preferences</h4>
+                  <div class="space-y-4">
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Auto-save conversations</label>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Automatically save chat history</p>
+                      </div>
+                      <input type="checkbox" id="autoSave" class="rounded">
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <div>
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Sound notifications</label>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Play sound for new messages</p>
+                      </div>
+                      <input type="checkbox" id="soundNotif" class="rounded">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Profile Tab -->
+            <div id="profile-tab" class="settings-content hidden">
+              <div class="space-y-6">
+                <div>
+                  <h4 class="text-base font-medium text-gray-900 dark:text-white mb-4">Profile Information</h4>
+                  <div class="space-y-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
+                      <input type="text" id="profileName" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+                      <input type="email" id="profileEmail" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mobile</label>
+                      <input type="tel" id="profileMobile" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- LLM Tab -->
+            <div id="llm-tab" class="settings-content hidden">
+              <div class="space-y-6">
+                <div>
+                  <h4 class="text-base font-medium text-gray-900 dark:text-white mb-4">AI Model Configuration</h4>
+                  
+                  <!-- OpenAI -->
+                  <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 mb-4">
+                    <div class="flex items-center gap-3 mb-3">
+                      <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-robot text-white text-sm"></i>
+                      </div>
+                      <div>
+                        <h5 class="font-medium text-gray-900 dark:text-white">OpenAI (ChatGPT)</h5>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Connect your OpenAI API key</p>
+                      </div>
+                    </div>
+                    <input type="password" id="openaiKey" placeholder="sk-..." class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                  </div>
+                  
+                  <!-- Gemini -->
+                  <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 mb-4">
+                    <div class="flex items-center gap-3 mb-3">
+                      <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-gem text-white text-sm"></i>
+                      </div>
+                      <div>
+                        <h5 class="font-medium text-gray-900 dark:text-white">Google Gemini</h5>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Connect your Gemini API key</p>
+                      </div>
+                    </div>
+                    <input type="password" id="geminiKey" placeholder="AIza..." class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                  </div>
+                  
+                  <!-- Ollama -->
+                  <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
+                    <div class="flex items-center gap-3 mb-3">
+                      <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-server text-white text-sm"></i>
+                      </div>
+                      <div>
+                        <h5 class="font-medium text-gray-900 dark:text-white">Ollama (Local)</h5>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Select local model</p>
+                      </div>
+                    </div>
+                    <select id="ollamaModel" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                      <option value="llama3.2:1b">Llama 3.2 1B</option>
+                      <option value="llama3.2:3b">Llama 3.2 3B</option>
+                      <option value="llama3.1:8b">Llama 3.1 8B</option>
+                      <option value="codellama">Code Llama</option>
+                      <option value="mistral">Mistral</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Interface Tab -->
+            <div id="interface-tab" class="settings-content hidden">
+              <div class="space-y-6">
+                <div>
+                  <h4 class="text-base font-medium text-gray-900 dark:text-white mb-4">Interface Customization</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chat Width</label>
+                      <select id="chatWidth" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                        <option value="max-w-2xl">Narrow</option>
+                        <option value="max-w-4xl" selected>Medium</option>
+                        <option value="max-w-6xl">Wide</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message Style</label>
+                      <select id="messageStyle" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                        <option value="bubble" selected>Bubble</option>
+                        <option value="card">Card</option>
+                        <option value="minimal">Minimal</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Advanced Tab -->
+            <div id="advanced-tab" class="settings-content hidden">
+              <div class="space-y-6">
+                <div>
+                  <h4 class="text-base font-medium text-gray-900 dark:text-white mb-4">Upcoming Features</h4>
+                  <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div class="flex items-center gap-3">
+                        <i class="fas fa-palette text-blue-500"></i>
+                        <span class="text-sm text-gray-700 dark:text-gray-300">Custom Themes</span>
+                      </div>
+                      <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">Coming Soon</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div class="flex items-center gap-3">
+                        <i class="fas fa-cloud text-green-500"></i>
+                        <span class="text-sm text-gray-700 dark:text-gray-300">Cloud Sync</span>
+                      </div>
+                      <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">Coming Soon</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div class="flex items-center gap-3">
+                        <i class="fas fa-plug text-purple-500"></i>
+                        <span class="text-sm text-gray-700 dark:text-gray-300">Plugin System</span>
+                      </div>
+                      <span class="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">Coming Soon</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Footer -->
+          <div class="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+            <button id="cancelSettingsBtn" class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+              Cancel
+            </button>
+            <button id="saveSettingsBtn" class="px-6 py-2 bg-gradient-to-r from-gemini-blue to-gemini-green text-white rounded-lg hover:opacity-90 transition-opacity">
+              Save Settings
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -160,111 +350,121 @@
     <aside id="sidebar" class="hidden md:flex w-80 flex-col border-r border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl flex-shrink-0 shadow-xl">
       <!-- Sidebar Header -->
       <div class="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-10 h-10 bg-gradient-to-r from-gemini-blue to-gemini-green rounded-xl flex items-center justify-center shadow-lg">
-            <i class="fas fa-sparkles text-white"></i>
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-3 mb-4 hover:opacity-80 transition-opacity">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center shadow-lg">
+            <i class="fas fa-brain text-white"></i>
           </div>
           <div>
-            <h2 class="font-bold text-lg" style="font-family: 'Google Sans', sans-serif;">Conversations</h2>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Smart chat history</p>
+            <h1 class="font-bold text-lg" style="font-family: 'Google Sans', sans-serif;">
+              <span class="bg-gradient-to-r from-gemini-blue to-gemini-green bg-clip-text text-transparent">Neuro-Core</span>
+              <span class="text-gray-700 dark:text-gray-300 ml-1">AI</span>
+            </h1>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Advanced AI Assistant</p>
           </div>
-        </div>
-        <button id="clearBtn" class="w-full text-sm px-4 py-2 rounded-xl bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-xl">
-          <i class="fas fa-trash-alt mr-2"></i>Clear History
+        </a>
+        
+        <!-- Mobile Menu Button -->
+        <button id="mobileMenuBtn" class="md:hidden mb-4 p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+          <i class="fas fa-bars text-lg"></i>
         </button>
+        
+
       </div>
       
-      <!-- Chat History -->
+      <!-- Sidebar Content -->
       <div class="flex-1 overflow-auto p-4">
-        <div class="text-xs text-gray-500 dark:text-gray-400 mb-4 px-2">
-          <i class="fas fa-info-circle mr-1"></i>
-          Session-based history (browser only)
+        <!-- Chat Conversations -->
+        <div class="mb-6">
+          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Conversations</h3>
+          <button id="newChatBtn" class="w-full p-3 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-gemini-blue dark:hover:border-gemini-blue hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors mb-3">
+            <div class="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
+              <i class="fas fa-plus text-sm"></i>
+              <span class="text-sm font-medium">Start New Chat</span>
+            </div>
+          </button>
+          <div id="sidebarHistory" class="space-y-2"></div>
         </div>
-        <div id="sidebarHistory" class="space-y-2"></div>
+        
+        <!-- Chatbots -->
+        <div>
+          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Your Chatbots</h3>
+          <button id="newChatbotBtn" class="w-full p-3 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-gemini-green dark:hover:border-gemini-green hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors mb-3">
+            <div class="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
+              <i class="fas fa-plus text-sm"></i>
+              <span class="text-sm font-medium">Create New Bot</span>
+            </div>
+          </button>
+          <div id="chatbotsList" class="space-y-2"></div>
+        </div>
       </div>
       
       <!-- Sidebar Footer -->
       <div class="p-4 border-t border-gray-200/50 dark:border-gray-700/50 space-y-3">
-        <button id="themeToggle" class="w-full text-sm px-4 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white hover:from-indigo-600 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl">
-          <i class="fas fa-palette mr-2"></i>Toggle Theme
-        </button>
-        <div class="text-xs text-center text-gray-500 dark:text-gray-400">
-          <i class="fas fa-heart text-red-500 mr-1"></i>
-          Made with Neuro-Core
+        {% if user %}
+        <!-- User Info -->
+        <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 mb-3">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center text-white font-semibold">
+                {{ user.name[0].upper() }}
+              </div>
+              <div>
+                <div class="font-medium text-gray-700 dark:text-gray-300 text-sm">{{ user.name }}</div>
+                <div class="text-xs text-gray-500 dark:text-gray-400">{{ user.email }}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1">
+              <button id="themeToggle" class="p-1 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <i class="fas fa-moon dark:hidden text-gray-600"></i>
+                <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+              </button>
+              <button id="layoutBtn" class="p-1 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                <i class="fas fa-cog text-gray-600 dark:text-gray-400"></i>
+              </button>
+            </div>
+          </div>
+          <button id="logoutBtn" class="w-full text-xs px-3 py-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">
+            <i class="fas fa-sign-out-alt mr-1"></i>Logout
+          </button>
         </div>
+        {% else %}
+        <!-- Login Button -->
+        <div class="flex items-center justify-between mb-3">
+          <button id="loginBtn" class="flex-1 text-sm px-4 py-3 rounded-xl bg-gradient-to-r from-gemini-blue to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl mr-2">
+            <i class="fas fa-sign-in-alt mr-2"></i>Login for Features
+          </button>
+          <button id="themeToggle" class="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+            <i class="fas fa-moon dark:hidden text-gray-600"></i>
+            <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+          </button>
+        </div>
+        {% endif %}
+
       </div>
     </aside>
 
     <!-- Main Content Area -->
     <main class="flex-1 flex flex-col relative">
-      <!-- Enhanced Header -->
-      <header class="border-b border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-sm">
-        <div id="headerContainer" class="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-          <!-- Left Section -->
-          <div class="flex items-center gap-4">
-            <button id="mobileMenuBtn" class="md:hidden p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-              <i class="fas fa-bars text-lg"></i>
-            </button>
-            
-            <!-- Logo -->
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center shadow-lg">
-                <i class="fas fa-sparkles text-white"></i>
-              </div>
-              <div class="hidden sm:block">
-                <h1 class="font-bold text-xl" style="font-family: 'Google Sans', sans-serif;">
-                  <span class="bg-gradient-to-r from-gemini-blue to-gemini-green bg-clip-text text-transparent">Neuro-Core</span>
-                  <span class="text-gray-700 dark:text-gray-300 ml-1">AI</span>
-                </h1>
-                <p class="text-xs text-gray-500 dark:text-gray-400">Advanced AI Assistant</p>
-              </div>
-              <div class="sm:hidden font-bold text-lg bg-gradient-to-r from-gemini-blue to-gemini-green bg-clip-text text-transparent">Neuro-Core</div>
+      <!-- Mobile Header -->
+      <div class="md:hidden bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 p-4">
+        <div class="flex items-center justify-between">
+          <button id="mobileMenuBtn" class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+            <i class="fas fa-bars text-lg"></i>
+          </button>
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center">
+              <i class="fas fa-brain text-white text-sm"></i>
             </div>
-            
-            <!-- Status Badge -->
-            <div class="hidden lg:flex items-center gap-2">
-              <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
-                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span class="text-xs font-medium">Online</span>
-              </div>
-              <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Flask</span>
-            </div>
+            <span class="font-bold text-lg bg-gradient-to-r from-gemini-blue to-gemini-green bg-clip-text text-transparent">Neuro-Core</span>
           </div>
-          
-          <!-- Right Section -->
-          <div class="flex items-center gap-3">
-            {% if user %}
-            <div class="hidden sm:flex items-center gap-3 text-sm">
-              <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-100 dark:bg-gray-800">
-                <i class="fas fa-user-circle text-gemini-blue"></i>
-                <span class="text-gray-700 dark:text-gray-300">{{ user.name }}</span>
-              </div>
-            </div>
-            
-            <button id="logoutBtn" class="p-3 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-colors" title="Logout">
-              <i class="fas fa-sign-out-alt"></i>
-            </button>
-            {% else %}
-            <button id="loginBtn" class="flex items-center gap-2 px-4 py-2 text-sm rounded-xl bg-gradient-to-r from-gemini-blue to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl" title="Login for advanced features">
-              <i class="fas fa-sign-in-alt"></i>
-              <span class="hidden sm:inline">Login</span>
-            </button>
-            {% endif %}
-            
-            <!-- Action Buttons -->
-            <button id="layoutBtn" class="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" title="Layout settings">
-              <i class="fas fa-cog"></i>
-            </button>
-            <button id="headerThemeToggle" class="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" title="Toggle theme">
-              <i class="fas fa-moon dark:hidden"></i>
-              <i class="fas fa-sun hidden dark:block"></i>
-            </button>
-          </div>
+          <div class="w-10"></div>
         </div>
-      </header>
+      </div>
+
 
       <!-- Chat Area -->
-      <section id="chat" class="flex-1 overflow-auto bg-gradient-to-b from-transparent to-gray-50/30 dark:to-gray-900/30">
+      <section id="chat" class="flex-1 overflow-auto bg-white/80 dark:bg-gray-900/80">
         <div id="messagesContainer" class="max-w-4xl mx-auto px-6 py-8 space-y-8">
           {% if history %}
             {% for m in history %}
@@ -321,40 +521,61 @@
             <!-- Welcome Screen -->
             <div class="text-center py-16 animate-fade-in">
               <div class="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-gemini-blue to-gemini-green rounded-2xl flex items-center justify-center shadow-2xl">
-                <i class="fas fa-sparkles text-white text-2xl"></i>
+                <i class="fas fa-brain text-white text-2xl"></i>
               </div>
-              <h2 class="text-2xl font-bold mb-4 bg-gradient-to-r from-gemini-blue to-gemini-green bg-clip-text text-transparent" style="font-family: 'Google Sans', sans-serif;">
-                Welcome to Neuro-Core AI
+              <h2 class="text-3xl font-bold mb-4 bg-gradient-to-r from-gemini-blue to-gemini-green bg-clip-text text-transparent" style="font-family: 'Google Sans', sans-serif;">
+                Ready to Chat!
               </h2>
-              <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                Your advanced AI assistant is ready to help with questions, analysis, and creative tasks.
+              <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-lg mx-auto text-lg">
+                Start a conversation with your AI assistant. Ask questions, upload files, or get help with any task.
               </p>
               
-              <!-- Quick Actions -->
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 cursor-pointer group">
-                  <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
-                    <i class="fas fa-question-circle text-white"></i>
+              <!-- Example Prompts -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto mb-8">
+                <button class="example-prompt bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 text-left group">
+                  <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-lightbulb text-yellow-500"></i>
+                    <span class="font-medium">Explain quantum computing</span>
                   </div>
-                  <h3 class="font-semibold mb-2">Ask Questions</h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">Get instant answers to any question</p>
-                </div>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">Get detailed explanations on complex topics</p>
+                </button>
                 
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 cursor-pointer group">
-                  <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
-                    <i class="fas fa-file-upload text-white"></i>
+                <button class="example-prompt bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 text-left group">
+                  <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-code text-blue-500"></i>
+                    <span class="font-medium">Write a Python function</span>
                   </div>
-                  <h3 class="font-semibold mb-2">Upload Files</h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">Analyze PDFs, images, and documents</p>
-                </div>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">Get help with programming and coding</p>
+                </button>
                 
-                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 cursor-pointer group">
-                  <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 mx-auto group-hover:scale-110 transition-transform">
-                    <i class="fas fa-code text-white"></i>
+                <button class="example-prompt bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 text-left group">
+                  <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-file-alt text-green-500"></i>
+                    <span class="font-medium">Analyze this document</span>
                   </div>
-                  <h3 class="font-semibold mb-2">Code Help</h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">Programming assistance and debugging</p>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">Upload and get insights from files</p>
+                </button>
+                
+                <button class="example-prompt bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 text-left group">
+                  <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-brain text-purple-500"></i>
+                    <span class="font-medium">Remember my preferences</span>
+                  </div>
+                  <p class="text-sm text-gray-500 dark:text-gray-400">Teach the AI about your preferences</p>
+                </button>
+              </div>
+              
+              <!-- AI Model Selector -->
+              <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700 max-w-md mx-auto">
+                <div class="flex items-center gap-3 mb-3">
+                  <i class="fas fa-robot text-gemini-blue"></i>
+                  <span class="font-medium">AI Model</span>
                 </div>
+                <select id="aiModelSelect" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-700 border-0 text-sm">
+                  <option value="ollama">Ollama (Local & Free)</option>
+                  <option value="openai">ChatGPT (API Required)</option>
+                  <option value="gemini">Gemini (API Required)</option>
+                </select>
               </div>
             </div>
           {% endif %}
@@ -362,7 +583,7 @@
       </section>
 
       <!-- Enhanced Input Area -->
-      <footer class="border-t border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl">
+      <footer class="bg-white/80 dark:bg-gray-900/80">
         <div id="inputContainer" class="max-w-4xl mx-auto p-6">
           <!-- Input Box -->
           <div class="relative">
@@ -392,6 +613,14 @@
                   <i class="fas fa-microphone text-gray-400"></i>
                 </button>
                 
+                <!-- Stop Button (hidden by default) -->
+                <button 
+                  id="stopBtn" 
+                  class="hidden bg-red-500 hover:bg-red-600 text-white p-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
+                  title="Stop generation">
+                  <i class="fas fa-stop"></i>
+                </button>
+                
                 <!-- Send Button -->
                 <button 
                   id="streamBtn" 
@@ -410,9 +639,10 @@
               </div>
               
               <div class="flex items-center gap-2">
-                <button class="text-xs px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Example prompts">
-                  <i class="fas fa-lightbulb mr-1"></i>Examples
-                </button>
+                <div class="text-xs px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 flex items-center gap-1">
+                  <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span id="currentModel">Ollama</span>
+                </div>
                 <button class="text-xs px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Keyboard shortcuts">
                   <i class="fas fa-keyboard mr-1"></i>Shortcuts
                 </button>
@@ -436,6 +666,45 @@
       </footer>
 
     </main>
+  </div>
+
+  <!-- New Chatbot Modal -->
+  <div id="newChatbotModal" class="fixed inset-0 z-50 hidden">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" id="chatbotModalOverlay"></div>
+    <div class="fixed inset-0 flex items-center justify-center p-4">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md">
+        <div class="p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Create New Chatbot</h3>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chatbot Name</label>
+              <input type="text" id="chatbotName" placeholder="Enter chatbot name" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Knowledge Base</label>
+              <textarea id="chatbotKnowledge" rows="4" placeholder="Enter the knowledge base and context for your chatbot..." class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 resize-none"></textarea>
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upload Files (Optional)</label>
+              <input type="file" id="chatbotFiles" multiple accept=".pdf,.txt,.json,.md" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Upload PDF, TXT, JSON, or MD files to enhance knowledge base</p>
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-end gap-3 mt-6">
+            <button id="cancelChatbotBtn" class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+              Cancel
+            </button>
+            <button id="createChatbotBtn" class="px-6 py-2 bg-gradient-to-r from-gemini-blue to-gemini-green text-white rounded-lg hover:opacity-90 transition-opacity">
+              Create Chatbot
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
