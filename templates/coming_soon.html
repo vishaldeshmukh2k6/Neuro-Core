@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming Soon - Neuro-Core AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'gemini-blue': '#4285f4',
+                        'gemini-green': '#34a853',
+                        'gemini-yellow': '#fbbc04',
+                        'gemini-red': '#ea4335'
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        body {
+            font-family: 'Google Sans', sans-serif;
+        }
+    </style>
+</head>
+
+<body
+    class="h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 text-gray-900 dark:text-gray-100 flex items-center justify-center p-4">
+
+    <div class="max-w-2xl w-full text-center">
+        <!-- Icon -->
+        <div class="relative w-32 h-32 mx-auto mb-8 animate-float">
+            <div
+                class="absolute inset-0 bg-gradient-to-r from-gemini-blue to-gemini-green rounded-3xl blur-xl opacity-50 animate-pulse-slow">
+            </div>
+            <div
+                class="relative w-full h-full bg-white dark:bg-gray-800 rounded-3xl flex items-center justify-center shadow-2xl border border-gray-200 dark:border-gray-700">
+                <i
+                    class="fas fa-robot text-5xl bg-gradient-to-r from-gemini-blue to-gemini-green bg-clip-text text-transparent"></i>
+            </div>
+            <!-- Decorative elements -->
+            <div class="absolute -top-4 -right-4 w-8 h-8 bg-gemini-yellow rounded-full animate-bounce"
+                style="animation-delay: 0.2s"></div>
+            <div class="absolute -bottom-2 -left-4 w-6 h-6 bg-gemini-red rounded-full animate-bounce"
+                style="animation-delay: 0.5s"></div>
+        </div>
+
+        <!-- Content -->
+        <h1
+            class="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-gemini-blue via-gemini-green to-gemini-yellow bg-clip-text text-transparent">
+            Custom Chatbots Coming Soon
+        </h1>
+
+        <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+            We're building a powerful way for you to create custom AI assistants.
+            Soon you'll be able to train them on your own data, files, and specific knowledge bases.
+        </p>
+
+        <!-- Features Preview -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 text-left">
+            <div
+                class="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-database text-gemini-blue"></i>
+                </div>
+                <h3 class="font-semibold mb-2">Custom Knowledge</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Upload your own PDFs, docs, and data for the bot to
+                    learn from.</p>
+            </div>
+
+            <div
+                class="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div
+                    class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-sliders-h text-gemini-green"></i>
+                </div>
+                <h3 class="font-semibold mb-2">Fine-tuning</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Adjust personality, tone, and specific instructions.
+                </p>
+            </div>
+
+            <div
+                class="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-2xl border border-gray-200 dark:border-gray-700">
+                <div
+                    class="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-share-alt text-purple-500"></i>
+                </div>
+                <h3 class="font-semibold mb-2">Sharing</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400">Share your specialized bots with your team or the
+                    world.</p>
+            </div>
+        </div>
+
+        <!-- Action -->
+        <button onclick="history.back()"
+            class="px-8 py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-medium hover:opacity-90 transition-opacity shadow-lg">
+            <i class="fas fa-arrow-left mr-2"></i>Go Back
+        </button>
+    </div>
+
+    <script>
+        // Check dark mode preference
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+</body>
+
+</html>

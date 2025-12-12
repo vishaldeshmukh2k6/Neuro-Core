@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="en" class="h-full">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -29,40 +29,52 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 text-gray-900 dark:text-gray-100 transition-all duration-500">
+
+<body
+  class="h-full bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 text-gray-900 dark:text-gray-100 transition-all duration-500">
   <!-- Advanced Gemini-style Loading Screen -->
-  <div id="loadingScreen" class="fixed inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 z-50 flex items-center justify-center backdrop-blur-sm">
+  <div id="loadingScreen"
+    class="fixed inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 z-50 flex items-center justify-center backdrop-blur-sm">
     <div class="text-center max-w-lg mx-auto px-6">
       <!-- Gemini-style Logo -->
       <div class="relative mb-12">
         <div class="w-24 h-24 mx-auto relative">
           <!-- Main circle with gradient -->
-          <div class="absolute inset-0 bg-gradient-to-r from-gemini-blue via-gemini-green to-gemini-yellow rounded-full animate-glow shadow-2xl"></div>
+          <div
+            class="absolute inset-0 bg-gradient-to-r from-gemini-blue via-gemini-green to-gemini-yellow rounded-full animate-glow shadow-2xl">
+          </div>
           <div class="absolute inset-1 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center">
             <!-- Gemini sparkle icon -->
             <div class="relative">
-              <i class="fas fa-sparkles text-2xl bg-gradient-to-r from-gemini-blue to-gemini-green bg-clip-text text-transparent animate-pulse"></i>
+              <i
+                class="fas fa-sparkles text-2xl bg-gradient-to-r from-gemini-blue to-gemini-green bg-clip-text text-transparent animate-pulse"></i>
               <div class="absolute -top-1 -right-1 w-3 h-3 bg-gemini-yellow rounded-full animate-ping"></div>
             </div>
           </div>
         </div>
-        
+
         <!-- Floating particles -->
         <div class="absolute inset-0 animate-float">
-          <div class="w-2 h-2 bg-gemini-blue rounded-full absolute -top-2 left-1/3 animate-bounce" style="animation-delay: 0s"></div>
-          <div class="w-1.5 h-1.5 bg-gemini-green rounded-full absolute top-1/4 -right-3 animate-bounce" style="animation-delay: 0.5s"></div>
-          <div class="w-2 h-2 bg-gemini-yellow rounded-full absolute -bottom-2 right-1/3 animate-bounce" style="animation-delay: 1s"></div>
-          <div class="w-1.5 h-1.5 bg-gemini-red rounded-full absolute top-1/3 -left-3 animate-bounce" style="animation-delay: 1.5s"></div>
+          <div class="w-2 h-2 bg-gemini-blue rounded-full absolute -top-2 left-1/3 animate-bounce"
+            style="animation-delay: 0s"></div>
+          <div class="w-1.5 h-1.5 bg-gemini-green rounded-full absolute top-1/4 -right-3 animate-bounce"
+            style="animation-delay: 0.5s"></div>
+          <div class="w-2 h-2 bg-gemini-yellow rounded-full absolute -bottom-2 right-1/3 animate-bounce"
+            style="animation-delay: 1s"></div>
+          <div class="w-1.5 h-1.5 bg-gemini-red rounded-full absolute top-1/3 -left-3 animate-bounce"
+            style="animation-delay: 1.5s"></div>
         </div>
       </div>
-      
+
       <!-- Title with Google-style gradient -->
       <h1 class="text-4xl font-bold mb-2" style="font-family: 'Google Sans', sans-serif;">
         <span class="bg-gradient-to-r from-gemini-blue via-gemini-green to-gemini-yellow bg-clip-text text-transparent">
@@ -70,12 +82,13 @@
         </span>
         <span class="text-gray-700 dark:text-gray-300 ml-2">AI</span>
       </h1>
-      
+
       <p class="text-lg text-gray-600 dark:text-gray-400 mb-8">Advanced AI Assistant</p>
-      
+
       <!-- Dynamic status with typing effect -->
       <div class="mb-8">
-        <p id="loadingStatus" class="text-gray-600 dark:text-gray-300 h-6 font-medium">Initializing neural networks...</p>
+        <p id="loadingStatus" class="text-gray-600 dark:text-gray-300 h-6 font-medium">Initializing neural networks...
+        </p>
         <div class="flex justify-center mt-2">
           <div class="flex space-x-1">
             <div class="w-2 h-2 bg-gemini-blue rounded-full animate-bounce" style="animation-delay: 0ms"></div>
@@ -84,34 +97,44 @@
           </div>
         </div>
       </div>
-      
+
       <!-- Enhanced progress bar -->
       <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-8 overflow-hidden shadow-inner">
-        <div id="progressBar" class="h-full bg-gradient-to-r from-gemini-blue via-gemini-green to-gemini-yellow rounded-full transition-all duration-500 ease-out shadow-lg" style="width: 0%"></div>
+        <div id="progressBar"
+          class="h-full bg-gradient-to-r from-gemini-blue via-gemini-green to-gemini-yellow rounded-full transition-all duration-500 ease-out shadow-lg"
+          style="width: 0%"></div>
       </div>
-      
+
       <!-- Feature cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-        <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl p-3 border border-gray-200 dark:border-gray-700">
-          <div class="w-8 h-8 bg-gradient-to-r from-gemini-blue to-blue-500 rounded-lg flex items-center justify-center mb-2 mx-auto">
+        <div
+          class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl p-3 border border-gray-200 dark:border-gray-700">
+          <div
+            class="w-8 h-8 bg-gradient-to-r from-gemini-blue to-blue-500 rounded-lg flex items-center justify-center mb-2 mx-auto">
             <i class="fas fa-brain text-white text-sm"></i>
           </div>
           <span class="text-gray-700 dark:text-gray-300 font-medium">Smart Memory</span>
         </div>
-        <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl p-3 border border-gray-200 dark:border-gray-700">
-          <div class="w-8 h-8 bg-gradient-to-r from-gemini-green to-green-500 rounded-lg flex items-center justify-center mb-2 mx-auto">
+        <div
+          class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl p-3 border border-gray-200 dark:border-gray-700">
+          <div
+            class="w-8 h-8 bg-gradient-to-r from-gemini-green to-green-500 rounded-lg flex items-center justify-center mb-2 mx-auto">
             <i class="fas fa-file-alt text-white text-sm"></i>
           </div>
           <span class="text-gray-700 dark:text-gray-300 font-medium">File Analysis</span>
         </div>
-        <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl p-3 border border-gray-200 dark:border-gray-700">
-          <div class="w-8 h-8 bg-gradient-to-r from-gemini-yellow to-yellow-500 rounded-lg flex items-center justify-center mb-2 mx-auto">
+        <div
+          class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl p-3 border border-gray-200 dark:border-gray-700">
+          <div
+            class="w-8 h-8 bg-gradient-to-r from-gemini-yellow to-yellow-500 rounded-lg flex items-center justify-center mb-2 mx-auto">
             <i class="fas fa-bolt text-white text-sm"></i>
           </div>
           <span class="text-gray-700 dark:text-gray-300 font-medium">Real-time</span>
         </div>
-        <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl p-3 border border-gray-200 dark:border-gray-700">
-          <div class="w-8 h-8 bg-gradient-to-r from-gemini-red to-red-500 rounded-lg flex items-center justify-center mb-2 mx-auto">
+        <div
+          class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl p-3 border border-gray-200 dark:border-gray-700">
+          <div
+            class="w-8 h-8 bg-gradient-to-r from-gemini-red to-red-500 rounded-lg flex items-center justify-center mb-2 mx-auto">
             <i class="fas fa-shield-alt text-white text-sm"></i>
           </div>
           <span class="text-gray-700 dark:text-gray-300 font-medium">Secure</span>
@@ -124,46 +147,58 @@
   <div id="settingsModal" class="fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" id="modalOverlay"></div>
     <div class="fixed inset-0 flex items-center justify-center p-4">
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-5xl h-[600px] overflow-hidden flex">
+      <div
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-5xl h-[600px] overflow-hidden flex">
         <!-- Settings Sidebar -->
         <div class="w-64 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700 flex flex-col">
           <div class="p-6 border-b border-gray-200 dark:border-gray-700">
             <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Settings</h2>
           </div>
           <nav class="flex-1 p-4 space-y-2">
-            <button class="settings-tab active w-full text-left px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" data-tab="general">
+            <button
+              class="settings-tab active w-full text-left px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              data-tab="general">
               <i class="fas fa-cog mr-3 text-gray-500"></i>
               <span class="text-sm font-medium">General</span>
             </button>
-            <button class="settings-tab w-full text-left px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" data-tab="profile">
+            <button
+              class="settings-tab w-full text-left px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              data-tab="profile">
               <i class="fas fa-user mr-3 text-gray-500"></i>
               <span class="text-sm font-medium">Profile</span>
             </button>
-            <button class="settings-tab w-full text-left px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" data-tab="llm">
+            <button
+              class="settings-tab w-full text-left px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              data-tab="llm">
               <i class="fas fa-robot mr-3 text-gray-500"></i>
               <span class="text-sm font-medium">AI Models</span>
             </button>
-            <button class="settings-tab w-full text-left px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" data-tab="interface">
+            <button
+              class="settings-tab w-full text-left px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              data-tab="interface">
               <i class="fas fa-palette mr-3 text-gray-500"></i>
               <span class="text-sm font-medium">Interface</span>
             </button>
-            <button class="settings-tab w-full text-left px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors" data-tab="advanced">
+            <button
+              class="settings-tab w-full text-left px-4 py-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+              data-tab="advanced">
               <i class="fas fa-sliders-h mr-3 text-gray-500"></i>
               <span class="text-sm font-medium">Advanced</span>
             </button>
           </nav>
         </div>
-        
+
         <!-- Settings Content -->
         <div class="flex-1 flex flex-col">
           <!-- Header -->
           <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
             <h3 id="settingsTitle" class="text-lg font-medium text-gray-900 dark:text-white">General Settings</h3>
-            <button id="closeSettingsBtn" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+            <button id="closeSettingsBtn"
+              class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
               <i class="fas fa-times text-gray-500"></i>
             </button>
           </div>
-          
+
           <!-- Content Area -->
           <div class="flex-1 overflow-y-auto p-6">
             <!-- General Tab -->
@@ -174,7 +209,8 @@
                   <div class="space-y-4">
                     <div class="flex items-center justify-between">
                       <div>
-                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Auto-save conversations</label>
+                        <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Auto-save
+                          conversations</label>
                         <p class="text-xs text-gray-500 dark:text-gray-400">Automatically save chat history</p>
                       </div>
                       <input type="checkbox" id="autoSave" class="rounded">
@@ -190,7 +226,7 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Profile Tab -->
             <div id="profile-tab" class="settings-content hidden">
               <div class="space-y-6">
@@ -199,27 +235,30 @@
                   <div class="space-y-4">
                     <div>
                       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
-                      <input type="text" id="profileName" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                      <input type="text" id="profileName"
+                        class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
-                      <input type="email" id="profileEmail" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                      <input type="email" id="profileEmail"
+                        class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
                     </div>
                     <div>
                       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mobile</label>
-                      <input type="tel" id="profileMobile" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                      <input type="tel" id="profileMobile"
+                        class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            
+
             <!-- LLM Tab -->
             <div id="llm-tab" class="settings-content hidden">
               <div class="space-y-6">
                 <div>
                   <h4 class="text-base font-medium text-gray-900 dark:text-white mb-4">AI Model Configuration</h4>
-                  
+
                   <!-- OpenAI -->
                   <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 mb-4">
                     <div class="flex items-center gap-3 mb-3">
@@ -231,9 +270,10 @@
                         <p class="text-sm text-gray-500 dark:text-gray-400">Connect your OpenAI API key</p>
                       </div>
                     </div>
-                    <input type="password" id="openaiKey" placeholder="sk-..." class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                    <input type="password" id="openaiKey" placeholder="sk-..."
+                      class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
                   </div>
-                  
+
                   <!-- Gemini -->
                   <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 mb-4">
                     <div class="flex items-center gap-3 mb-3">
@@ -245,9 +285,10 @@
                         <p class="text-sm text-gray-500 dark:text-gray-400">Connect your Gemini API key</p>
                       </div>
                     </div>
-                    <input type="password" id="geminiKey" placeholder="AIza..." class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                    <input type="password" id="geminiKey" placeholder="AIza..."
+                      class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
                   </div>
-                  
+
                   <!-- Ollama -->
                   <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
                     <div class="flex items-center gap-3 mb-3">
@@ -259,7 +300,8 @@
                         <p class="text-sm text-gray-500 dark:text-gray-400">Select local model</p>
                       </div>
                     </div>
-                    <select id="ollamaModel" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                    <select id="ollamaModel"
+                      class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
                       <option value="llama3.2:1b">Llama 3.2 1B</option>
                       <option value="llama3.2:3b">Llama 3.2 3B</option>
                       <option value="llama3.1:8b">Llama 3.1 8B</option>
@@ -270,7 +312,7 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Interface Tab -->
             <div id="interface-tab" class="settings-content hidden">
               <div class="space-y-6">
@@ -279,15 +321,18 @@
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chat Width</label>
-                      <select id="chatWidth" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                      <select id="chatWidth"
+                        class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
                         <option value="max-w-2xl">Narrow</option>
                         <option value="max-w-4xl" selected>Medium</option>
                         <option value="max-w-6xl">Wide</option>
                       </select>
                     </div>
                     <div>
-                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message Style</label>
-                      <select id="messageStyle" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+                      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Message
+                        Style</label>
+                      <select id="messageStyle"
+                        class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
                         <option value="bubble" selected>Bubble</option>
                         <option value="card">Card</option>
                         <option value="minimal">Minimal</option>
@@ -297,7 +342,7 @@
                 </div>
               </div>
             </div>
-            
+
             <!-- Advanced Tab -->
             <div id="advanced-tab" class="settings-content hidden">
               <div class="space-y-6">
@@ -330,13 +375,15 @@
               </div>
             </div>
           </div>
-          
+
           <!-- Footer -->
           <div class="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
-            <button id="cancelSettingsBtn" class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+            <button id="cancelSettingsBtn"
+              class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
               Cancel
             </button>
-            <button id="saveSettingsBtn" class="px-6 py-2 bg-gradient-to-r from-gemini-blue to-gemini-green text-white rounded-lg hover:opacity-90 transition-opacity">
+            <button id="saveSettingsBtn"
+              class="px-6 py-2 bg-gradient-to-r from-gemini-blue to-gemini-green text-white rounded-lg hover:opacity-90 transition-opacity">
               Save Settings
             </button>
           </div>
@@ -347,91 +394,112 @@
 
   <div class="flex h-screen">
     <!-- Enhanced Sidebar -->
-    <aside id="sidebar" class="hidden md:flex w-80 flex-col border-r border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl flex-shrink-0 shadow-xl">
+    <aside id="sidebar"
+      class="hidden md:flex w-80 flex-col border-r border-gray-200/50 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl flex-shrink-0 shadow-xl">
       <!-- Sidebar Header -->
       <div class="p-6 border-b border-gray-200/50 dark:border-gray-700/50">
         <!-- Logo -->
         <a href="/" class="flex items-center gap-3 mb-4 hover:opacity-80 transition-opacity">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center shadow-lg">
+          <div
+            class="w-10 h-10 rounded-xl bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center shadow-lg">
             <i class="fas fa-brain text-white"></i>
           </div>
           <div>
             <h1 class="font-bold text-lg" style="font-family: 'Google Sans', sans-serif;">
-              <span class="bg-gradient-to-r from-gemini-blue to-gemini-green bg-clip-text text-transparent">Neuro-Core</span>
+              <span
+                class="bg-gradient-to-r from-gemini-blue to-gemini-green bg-clip-text text-transparent">Neuro-Core</span>
               <span class="text-gray-700 dark:text-gray-300 ml-1">AI</span>
             </h1>
             <p class="text-xs text-gray-500 dark:text-gray-400">Advanced AI Assistant</p>
           </div>
         </a>
-        
+
         <!-- Mobile Menu Button -->
-        <button id="mobileMenuBtn" class="md:hidden mb-4 p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+        <button id="mobileMenuBtn"
+          class="md:hidden mb-4 p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
           <i class="fas fa-bars text-lg"></i>
         </button>
-        
+
 
       </div>
-      
+
       <!-- Sidebar Content -->
       <div class="flex-1 overflow-auto p-4">
         <!-- Chat Conversations -->
         <div class="mb-6">
-          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Conversations</h3>
-          <button id="newChatBtn" class="w-full p-3 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-gemini-blue dark:hover:border-gemini-blue hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors mb-3">
-            <div class="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
-              <i class="fas fa-plus text-sm"></i>
-              <span class="text-sm font-medium">Start New Chat</span>
-            </div>
+          <button id="newChatBtn"
+            class="w-full flex items-center justify-center gap-2 px-4 py-3 mb-6 rounded-xl bg-gradient-to-r from-gemini-blue to-gemini-green text-white hover:opacity-90 transition-all duration-200 shadow-lg hover:shadow-xl font-medium">
+            <i class="fas fa-plus"></i>
+            <span>New Chat</span>
           </button>
+
+          <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-2">
+            Conversations</h3>
           <div id="sidebarHistory" class="space-y-2"></div>
         </div>
-        
-        <!-- Chatbots -->
-        <div>
-          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Your Chatbots</h3>
-          <button id="newChatbotBtn" class="w-full p-3 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-gemini-green dark:hover:border-gemini-green hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors mb-3">
-            <div class="flex items-center justify-center gap-2 text-gray-500 dark:text-gray-400">
-              <i class="fas fa-plus text-sm"></i>
-              <span class="text-sm font-medium">Create New Bot</span>
-            </div>
-          </button>
-          <div id="chatbotsList" class="space-y-2"></div>
-        </div>
+
+
       </div>
-      
+
       <!-- Sidebar Footer -->
-      <div class="p-4 border-t border-gray-200/50 dark:border-gray-700/50 space-y-3">
-        {% if user %}
-        <!-- User Info -->
-        <div class="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 mb-3">
-          <div class="flex items-center justify-between mb-3">
+      <!-- Sidebar Footer -->
+      <div class="p-4 border-t border-gray-200/50 dark:border-gray-700/50">
+        {% if user and not user.is_guest %}
+        <!-- User Profile Menu -->
+        <div class="relative">
+          <div
+            class="flex items-center justify-between p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer group"
+            id="userMenuBtn">
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center text-white font-semibold">
-                {{ user.name[0].upper() }}
+              <div
+                class="w-10 h-10 rounded-full bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center text-white font-semibold shadow-md">
+                {{ user.name[0].upper() if user.name else 'U' }}
               </div>
-              <div>
-                <div class="font-medium text-gray-700 dark:text-gray-300 text-sm">{{ user.name }}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">{{ user.email }}</div>
+              <div class="flex-1 min-w-0">
+                <div class="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">{{ user.name or 'User' }}
+                </div>
+                <div class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.email or 'No email' }}</div>
               </div>
             </div>
-            <div class="flex items-center gap-1">
-              <button id="themeToggle" class="p-1 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                <i class="fas fa-moon dark:hidden text-gray-600"></i>
-                <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+            <button class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+          </div>
+
+          <!-- Dropdown Menu -->
+          <div id="userDropdown"
+            class="hidden absolute bottom-full left-0 w-full mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-fade-in z-50">
+            <div class="p-2 space-y-1">
+              <button id="themeToggle"
+                class="w-full flex items-center justify-between px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                <div class="flex items-center gap-2">
+                  <i class="fas fa-moon dark:hidden"></i>
+                  <i class="fas fa-sun hidden dark:block text-yellow-400"></i>
+                  <span>Theme</span>
+                </div>
               </button>
-              <button id="layoutBtn" class="p-1 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                <i class="fas fa-cog text-gray-600 dark:text-gray-400"></i>
+
+              <button id="layoutBtn"
+                class="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+              </button>
+
+              <div class="h-px bg-gray-200 dark:bg-gray-700 my-1"></div>
+
+              <button id="logoutBtn"
+                class="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
               </button>
             </div>
           </div>
-          <button id="logoutBtn" class="w-full text-xs px-3 py-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">
-            <i class="fas fa-sign-out-alt mr-1"></i>Logout
-          </button>
         </div>
         {% else %}
         <!-- Login Button -->
         <div class="flex items-center justify-between mb-3">
-          <button id="loginBtn" class="flex-1 text-sm px-4 py-3 rounded-xl bg-gradient-to-r from-gemini-blue to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl mr-2">
+          <button id="loginBtn"
+            class="flex-1 text-sm px-4 py-3 rounded-xl bg-gradient-to-r from-gemini-blue to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl mr-2">
             <i class="fas fa-sign-in-alt mr-2"></i>Login for Features
           </button>
           <button id="themeToggle" class="p-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
@@ -440,23 +508,25 @@
           </button>
         </div>
         {% endif %}
-
       </div>
     </aside>
 
     <!-- Main Content Area -->
     <main class="flex-1 flex flex-col relative">
       <!-- Mobile Header -->
-      <div class="md:hidden bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 p-4">
+      <div
+        class="md:hidden bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 p-4">
         <div class="flex items-center justify-between">
           <button id="mobileMenuBtn" class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
             <i class="fas fa-bars text-lg"></i>
           </button>
           <div class="flex items-center gap-2">
-            <div class="w-8 h-8 rounded-lg bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center">
+            <div
+              class="w-8 h-8 rounded-lg bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center">
               <i class="fas fa-brain text-white text-sm"></i>
             </div>
-            <span class="font-bold text-lg bg-gradient-to-r from-gemini-blue to-gemini-green bg-clip-text text-transparent">Neuro-Core</span>
+            <span
+              class="font-bold text-lg bg-gradient-to-r from-gemini-blue to-gemini-green bg-clip-text text-transparent">Neuro-Core</span>
           </div>
           <div class="w-10"></div>
         </div>
@@ -466,119 +536,335 @@
       <!-- Chat Area -->
       <section id="chat" class="flex-1 overflow-auto bg-white/80 dark:bg-gray-900/80">
         <div id="messagesContainer" class="max-w-4xl mx-auto px-6 py-8 space-y-8">
-          {% if history %}
+          <div id="chatMessages" class="hidden">
+            {% if history %}
             {% for m in history %}
-              {% if m.role == 'user' %}
-                <!-- User Message -->
-                <div class="flex gap-4 justify-end animate-slide-up">
-                  <div class="max-w-[75%] group">
-                    <div class="bg-gradient-to-r from-gemini-blue to-blue-600 text-white rounded-2xl rounded-tr-md px-6 py-4 shadow-lg hover:shadow-xl transition-all duration-200">
-                      <div class="whitespace-pre-line text-sm leading-relaxed">{{ m.content }}</div>
-                    </div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-right opacity-0 group-hover:opacity-100 transition-opacity">
-                      <i class="fas fa-clock mr-1"></i>Just now
-                    </div>
-                  </div>
-                  <div class="w-10 h-10 rounded-full bg-gradient-to-r from-gemini-blue to-blue-600 flex items-center justify-center shadow-lg flex-shrink-0">
-                    <i class="fas fa-user text-white text-sm"></i>
-                  </div>
+            {% if m.role == 'user' %}
+            <!-- User Message -->
+            <div class="flex gap-4 justify-end animate-slide-up">
+              <div class="max-w-[75%] group">
+                <div
+                  class="bg-gradient-to-r from-gemini-blue to-blue-600 text-white rounded-2xl rounded-tr-md px-6 py-4 shadow-lg hover:shadow-xl transition-all duration-200">
+                  <div class="whitespace-pre-line text-sm leading-relaxed">{{ m.content }}</div>
                 </div>
-                {% if m.image_url %}
-                  <div class="flex justify-end pr-14 animate-fade-in">
-                    <div class="rounded-2xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700 max-w-sm">
-                      <img src="{{ m.image_url }}" class="w-full h-auto">
-                    </div>
-                  </div>
-                {% endif %}
-              {% else %}
-                <!-- AI Message -->
-                <div class="flex gap-4 animate-slide-up">
-                  <div class="w-10 h-10 rounded-full bg-gradient-to-r from-gemini-green to-green-600 flex items-center justify-center shadow-lg flex-shrink-0">
-                    <i class="fas fa-sparkles text-white text-sm"></i>
-                  </div>
-                  <div class="flex-1 group">
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-6 py-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200">
-                      <div class="prose dark:prose-invert max-w-none markdown text-sm leading-relaxed">
-                        {{ m.content }}
-                      </div>
-                    </div>
-                    <div class="flex items-center gap-3 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button class="text-xs text-gray-500 hover:text-gemini-blue transition-colors flex items-center gap-1">
-                        <i class="fas fa-thumbs-up"></i>Helpful
-                      </button>
-                      <button class="text-xs text-gray-500 hover:text-gemini-blue transition-colors flex items-center gap-1">
-                        <i class="fas fa-copy"></i>Copy
-                      </button>
-                      <span class="text-xs text-gray-400">
-                        <i class="fas fa-clock mr-1"></i>Just now
-                      </span>
-                    </div>
-                  </div>
+                <div
+                  class="text-xs text-gray-500 dark:text-gray-400 mt-2 text-right opacity-0 group-hover:opacity-100 transition-opacity">
+                  <i class="fas fa-clock mr-1"></i>Just now
                 </div>
-              {% endif %}
-            {% endfor %}
-          {% else %}
-            <!-- Welcome Screen -->
-            <div class="text-center py-16 animate-fade-in">
-              <div class="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-gemini-blue to-gemini-green rounded-2xl flex items-center justify-center shadow-2xl">
-                <i class="fas fa-brain text-white text-2xl"></i>
               </div>
-              <h2 class="text-3xl font-bold mb-4 bg-gradient-to-r from-gemini-blue to-gemini-green bg-clip-text text-transparent" style="font-family: 'Google Sans', sans-serif;">
-                Ready to Chat!
-              </h2>
-              <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-lg mx-auto text-lg">
-                Start a conversation with your AI assistant. Ask questions, upload files, or get help with any task.
-              </p>
-              
-              <!-- Example Prompts -->
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto mb-8">
-                <button class="example-prompt bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 text-left group">
-                  <div class="flex items-center gap-3 mb-2">
-                    <i class="fas fa-lightbulb text-yellow-500"></i>
-                    <span class="font-medium">Explain quantum computing</span>
-                  </div>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">Get detailed explanations on complex topics</p>
-                </button>
-                
-                <button class="example-prompt bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 text-left group">
-                  <div class="flex items-center gap-3 mb-2">
-                    <i class="fas fa-code text-blue-500"></i>
-                    <span class="font-medium">Write a Python function</span>
-                  </div>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">Get help with programming and coding</p>
-                </button>
-                
-                <button class="example-prompt bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 text-left group">
-                  <div class="flex items-center gap-3 mb-2">
-                    <i class="fas fa-file-alt text-green-500"></i>
-                    <span class="font-medium">Analyze this document</span>
-                  </div>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">Upload and get insights from files</p>
-                </button>
-                
-                <button class="example-prompt bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 text-left group">
-                  <div class="flex items-center gap-3 mb-2">
-                    <i class="fas fa-brain text-purple-500"></i>
-                    <span class="font-medium">Remember my preferences</span>
-                  </div>
-                  <p class="text-sm text-gray-500 dark:text-gray-400">Teach the AI about your preferences</p>
-                </button>
-              </div>
-              
-              <!-- AI Model Selector -->
-              <div class="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700 max-w-md mx-auto">
-                <div class="flex items-center gap-3 mb-3">
-                  <i class="fas fa-robot text-gemini-blue"></i>
-                  <span class="font-medium">AI Model</span>
-                </div>
-                <select id="aiModelSelect" class="w-full p-2 rounded-lg bg-gray-100 dark:bg-gray-700 border-0 text-sm">
-                  <option value="ollama">Ollama (Local & Free)</option>
-                  <option value="openai">ChatGPT (API Required)</option>
-                  <option value="gemini">Gemini (API Required)</option>
-                </select>
+              <div
+                class="w-10 h-10 rounded-full bg-gradient-to-r from-gemini-blue to-blue-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                <i class="fas fa-user text-white text-sm"></i>
               </div>
             </div>
-          {% endif %}
+            {% if m.image_url %}
+            <div class="flex justify-end pr-14 animate-fade-in">
+              <div class="rounded-2xl overflow-hidden shadow-lg border border-gray-200 dark:border-gray-700 max-w-sm">
+                <img src="{{ m.image_url }}" class="w-full h-auto">
+              </div>
+            </div>
+            {% endif %}
+            {% else %}
+            <!-- AI Message -->
+            <div class="flex gap-4 animate-slide-up">
+              <div
+                class="w-10 h-10 rounded-xl bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center shadow-lg flex-shrink-0">
+                <i class="fas fa-brain text-white text-sm"></i>
+              </div>
+              <div class="flex-1 group">
+                <div
+                  class="bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-6 py-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200">
+                  <div class="prose dark:prose-invert max-w-none markdown text-sm leading-relaxed">
+                    {{ m.content }}
+                  </div>
+                </div>
+                <div class="flex items-center gap-3 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    class="text-xs text-gray-500 hover:text-gemini-blue transition-colors flex items-center gap-1">
+                    <i class="fas fa-thumbs-up"></i>Helpful
+                  </button>
+                  <button
+                    class="text-xs text-gray-500 hover:text-gemini-blue transition-colors flex items-center gap-1">
+                    <i class="fas fa-copy"></i>Copy
+                  </button>
+                  <span class="text-xs text-gray-400">
+                    <i class="fas fa-clock mr-1"></i>Just now
+                  </span>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+            {% endif %}
+          </div>
+          <!-- Chatbot Coming Soon Screen -->
+          <div id="chatbotComingSoon"
+            class="{{ '' if show_chatbot_coming_soon else 'hidden' }} py-8 animate-fade-in text-center">
+            <div class="relative w-32 h-32 mx-auto mb-8 animate-float">
+              <div
+                class="absolute inset-0 bg-gradient-to-r from-gemini-blue to-gemini-green rounded-3xl blur-xl opacity-50 animate-pulse-slow">
+              </div>
+              <div
+                class="relative w-full h-full bg-white dark:bg-gray-800 rounded-3xl flex items-center justify-center shadow-2xl border border-gray-200 dark:border-gray-700">
+                <i
+                  class="fas fa-robot text-5xl bg-gradient-to-r from-gemini-blue to-gemini-green bg-clip-text text-transparent"></i>
+              </div>
+            </div>
+            <h1
+              class="text-4xl font-bold mb-6 bg-gradient-to-r from-gemini-blue via-gemini-green to-gemini-yellow bg-clip-text text-transparent">
+              Custom Chatbots Coming Soon
+            </h1>
+            <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+              We're building a powerful way for you to create custom AI assistants.
+              Soon you'll be able to train them on your own data, files, and specific knowledge bases.
+            </p>
+            <button onclick="createNewChat()"
+              class="px-6 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+              Back to Chat
+            </button>
+          </div>
+
+          <!-- Enhanced Welcome Screen -->
+          <div id="welcomeScreen" class="py-8 animate-fade-in {{ 'hidden' if show_chatbot_coming_soon else '' }}">
+            <!-- Hero Section -->
+            <div class="text-center mb-12">
+              <div
+                class="w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-gemini-blue to-gemini-green rounded-3xl flex items-center justify-center shadow-2xl animate-float">
+                <i class="fas fa-brain text-white text-3xl"></i>
+              </div>
+              <h1
+                class="hero-title text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-gemini-blue to-gemini-green bg-clip-text text-transparent"
+                style="font-family: 'Google Sans', sans-serif;">
+                Welcome to Neuro-Core AI
+              </h1>
+              <p class="hero-subtitle text-xl text-gray-600 dark:text-gray-400 mb-6 max-w-2xl mx-auto">
+                Your advanced AI assistant with memory, file processing, and real-time streaming capabilities
+              </p>
+              <div class="hero-status flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span>Powered by Ollama • Local & Private</span>
+              </div>
+            </div>
+
+            <!-- Core Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+              <!-- Real-time Streaming -->
+              <div
+                class="feature-card bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 group">
+                <div
+                  class="feature-icon w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <i class="fas fa-bolt text-white"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Real-time Streaming</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm mb-3">Watch responses generate live with typing
+                  indicators and smooth animations</p>
+                <div class="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400">
+                  <i class="fas fa-check"></i>
+                  <span>Live response generation</span>
+                </div>
+              </div>
+
+              <!-- Memory System -->
+              <div
+                class="feature-card bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 group">
+                <div
+                  class="feature-icon w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <i class="fas fa-brain text-white"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Smart Memory</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm mb-3">Remembers your preferences, context, and
+                  conversation history across sessions</p>
+                <div class="flex items-center gap-2 text-xs text-purple-600 dark:text-purple-400">
+                  <i class="fas fa-check"></i>
+                  <span>Persistent memory</span>
+                </div>
+              </div>
+
+              <!-- File Processing -->
+              <div
+                class="feature-card bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 group">
+                <div
+                  class="feature-icon w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <i class="fas fa-file-alt text-white"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">File Analysis</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm mb-3">Upload PDFs, images, JSON, and text files for
+                  intelligent analysis</p>
+                <div class="flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+                  <i class="fas fa-check"></i>
+                  <span>Multi-format support</span>
+                </div>
+              </div>
+
+              <!-- Voice Input -->
+              <div
+                class="feature-card bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 group">
+                <div
+                  class="feature-icon w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <i class="fas fa-microphone text-white"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Voice Input</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm mb-3">Speak naturally with real-time speech-to-text
+                  transcription</p>
+                <div class="flex items-center gap-2 text-xs text-red-600 dark:text-red-400">
+                  <i class="fas fa-check"></i>
+                  <span>Web Speech API</span>
+                </div>
+              </div>
+
+              <!-- API Integration -->
+              <div
+                class="feature-card bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 group">
+                <div
+                  class="feature-icon w-12 h-12 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <i class="fas fa-plug text-white"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">API Integration</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm mb-3">Fetch and analyze data from external APIs and
+                  web services</p>
+                <div class="flex items-center gap-2 text-xs text-yellow-600 dark:text-yellow-400">
+                  <i class="fas fa-check"></i>
+                  <span>RESTful API support</span>
+                </div>
+              </div>
+
+              <!-- Theme & Customization -->
+              <div
+                class="feature-card bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 group">
+                <div
+                  class="feature-icon w-12 h-12 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                  <i class="fas fa-palette text-white"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Customizable UI</h3>
+                <p class="text-gray-600 dark:text-gray-400 text-sm mb-3">Dark/light themes, responsive design, and
+                  personalized settings</p>
+                <div class="flex items-center gap-2 text-xs text-indigo-600 dark:text-indigo-400">
+                  <i class="fas fa-check"></i>
+                  <span>Auto theme detection</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Start Examples -->
+            <div class="mb-12">
+              <h2 class="text-2xl font-bold text-center mb-8 text-gray-900 dark:text-white">Try These Examples</h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+                <button
+                  class="example-prompt bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700 hover:shadow-lg transition-all duration-200 text-left group">
+                  <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-lightbulb text-yellow-500 text-lg"></i>
+                    <span class="font-medium text-gray-900 dark:text-white">Explain quantum computing in simple
+                      terms</span>
+                  </div>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Get detailed explanations on complex topics with
+                    examples</p>
+                </button>
+
+                <button
+                  class="example-prompt bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-4 border border-green-200 dark:border-green-700 hover:shadow-lg transition-all duration-200 text-left group">
+                  <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-code text-blue-500 text-lg"></i>
+                    <span class="font-medium text-gray-900 dark:text-white">Write a Python function to sort a
+                      list</span>
+                  </div>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Get help with programming, debugging, and code
+                    optimization</p>
+                </button>
+
+                <button
+                  class="example-prompt bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-4 border border-purple-200 dark:border-purple-700 hover:shadow-lg transition-all duration-200 text-left group">
+                  <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-brain text-purple-500 text-lg"></i>
+                    <span class="font-medium text-gray-900 dark:text-white">Remember that I'm a Python developer</span>
+                  </div>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Teach the AI about your preferences and background
+                  </p>
+                </button>
+
+                <button
+                  class="example-prompt bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-xl p-4 border border-orange-200 dark:border-orange-700 hover:shadow-lg transition-all duration-200 text-left group">
+                  <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-globe text-orange-500 text-lg"></i>
+                    <span class="font-medium text-gray-900 dark:text-white">Fetch data from
+                      https://api.github.com/users/octocat</span>
+                  </div>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Retrieve and analyze data from external APIs</p>
+                </button>
+              </div>
+            </div>
+
+            <!-- AI Model & Settings -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-8">
+              <!-- AI Model Selector -->
+              <div
+                class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center gap-3 mb-4">
+                  <i class="fas fa-robot text-gemini-blue text-xl"></i>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">AI Model</h3>
+                </div>
+                <select id="aiModelSelect"
+                  class="w-full p-3 rounded-lg bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-sm">
+                  <option value="ollama">🏠 Ollama (Local & Free)</option>
+                  <option value="openai">🤖 ChatGPT (API Required)</option>
+                  <option value="gemini">💎 Gemini (API Required)</option>
+                </select>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Choose your preferred AI model. Ollama runs
+                  locally for privacy.</p>
+              </div>
+
+              <!-- Quick Actions -->
+              <div
+                class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center gap-3 mb-4">
+                  <i class="fas fa-rocket text-gemini-green text-xl"></i>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Quick Actions</h3>
+                </div>
+                <div class="space-y-3">
+                  <button
+                    class="quick-action w-full flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors text-left"
+                    data-action="upload">
+                    <i class="fas fa-upload text-blue-500"></i>
+                    <div>
+                      <div class="text-sm font-medium text-gray-900 dark:text-white">Upload File</div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">Analyze documents, images, or data</div>
+                    </div>
+                  </button>
+                  <button
+                    class="quick-action w-full flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors text-left"
+                    data-action="voice">
+                    <i class="fas fa-microphone text-red-500"></i>
+                    <div>
+                      <div class="text-sm font-medium text-gray-900 dark:text-white">Voice Input</div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">Speak your questions naturally</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Keyboard Shortcuts -->
+            <div
+              class="shortcuts-section bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl p-6 border border-gray-200 dark:border-gray-600">
+              <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+                <i class="fas fa-keyboard text-gray-600 dark:text-gray-400"></i>
+                Keyboard Shortcuts
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-600 dark:text-gray-400">Send message</span>
+                  <kbd class="px-2 py-1 bg-white dark:bg-gray-800 rounded border text-xs">Enter</kbd>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-600 dark:text-gray-400">New line</span>
+                  <kbd class="px-2 py-1 bg-white dark:bg-gray-800 rounded border text-xs">Shift + Enter</kbd>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-gray-600 dark:text-gray-400">Focus input</span>
+                  <kbd class="px-2 py-1 bg-white dark:bg-gray-800 rounded border text-xs">Ctrl + K</kbd>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -587,63 +873,64 @@
         <div id="inputContainer" class="max-w-4xl mx-auto p-6">
           <!-- Input Box -->
           <div class="relative">
-            <div class="flex items-end gap-3 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 focus-within:ring-2 focus-within:ring-gemini-blue focus-within:border-gemini-blue transition-all duration-200">
-              
+            <div
+              class="flex items-end gap-3 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 focus-within:ring-2 focus-within:ring-gemini-blue focus-within:border-gemini-blue transition-all duration-200">
+
               <!-- Upload Button -->
-              <label class="cursor-pointer p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group" title="{% if user %}Upload file{% else %}Upload file (Login required){% endif %}">
+              <label
+                class="cursor-pointer p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group"
+                title="{% if user %}Upload file{% else %}Upload file (Login required){% endif %}">
                 <input id="fileInput" type="file" accept="image/*,.pdf,.json,.txt" class="hidden">
                 <i class="fas fa-paperclip text-gray-500 group-hover:text-gemini-blue transition-colors"></i>
               </label>
 
               <!-- Text Input -->
               <div class="flex-1">
-                <input 
-                  id="prompt"
-                  type="text"
-                  placeholder="Ask me anything..."
+                <input id="prompt" type="text" placeholder="Ask me anything..."
                   class="w-full bg-transparent outline-none text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 text-sm leading-relaxed"
-                  autocomplete="off"
-                />
+                  autocomplete="off" />
               </div>
 
               <!-- Action Buttons -->
               <div class="flex items-center gap-2">
                 <!-- Voice Input -->
-                <button id="voiceBtn" class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" title="Voice input">
+                <button id="voiceBtn" class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  title="Voice input">
                   <i class="fas fa-microphone text-gray-400"></i>
                 </button>
-                
+
                 <!-- Stop Button (hidden by default) -->
-                <button 
-                  id="stopBtn" 
+                <button id="stopBtn"
                   class="hidden bg-red-500 hover:bg-red-600 text-white p-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl"
                   title="Stop generation">
                   <i class="fas fa-stop"></i>
                 </button>
-                
+
                 <!-- Send Button -->
-                <button 
-                  id="streamBtn" 
+                <button id="streamBtn"
                   class="bg-gradient-to-r from-gemini-blue to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Send message">
                   <i class="fas fa-paper-plane"></i>
                 </button>
               </div>
             </div>
-            
+
             <!-- Quick Actions -->
             <div class="flex items-center justify-between mt-4">
               <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                 <i class="fas fa-info-circle"></i>
                 <span>Press Enter to send, Shift+Enter for new line</span>
               </div>
-              
+
               <div class="flex items-center gap-2">
-                <div class="text-xs px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 flex items-center gap-1">
+                <div
+                  class="text-xs px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 flex items-center gap-1">
                   <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   <span id="currentModel">Ollama</span>
                 </div>
-                <button class="text-xs px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Keyboard shortcuts">
+                <button
+                  class="text-xs px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  title="Keyboard shortcuts">
                   <i class="fas fa-keyboard mr-1"></i>Shortcuts
                 </button>
               </div>
@@ -652,9 +939,10 @@
 
           <!-- File Preview -->
           <div id="preview" class="mt-4 hidden"></div>
-          
+
           <!-- Typing Indicator -->
-          <div id="typingIndicator" class="hidden mt-4 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <div id="typingIndicator"
+            class="hidden mt-4 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
             <div class="flex space-x-1">
               <div class="w-2 h-2 bg-gemini-blue rounded-full animate-bounce" style="animation-delay: 0ms"></div>
               <div class="w-2 h-2 bg-gemini-green rounded-full animate-bounce" style="animation-delay: 150ms"></div>
@@ -672,34 +960,108 @@
   <div id="newChatbotModal" class="fixed inset-0 z-50 hidden">
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" id="chatbotModalOverlay"></div>
     <div class="fixed inset-0 flex items-center justify-center p-4">
-      <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md">
+      <div
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md">
         <div class="p-6">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Create New Chatbot</h3>
-          
+
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chatbot Name</label>
-              <input type="text" id="chatbotName" placeholder="Enter chatbot name" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+              <input type="text" id="chatbotName" placeholder="Enter chatbot name"
+                class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Knowledge Base</label>
-              <textarea id="chatbotKnowledge" rows="4" placeholder="Enter the knowledge base and context for your chatbot..." class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 resize-none"></textarea>
+              <textarea id="chatbotKnowledge" rows="4"
+                placeholder="Enter the knowledge base and context for your chatbot..."
+                class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 resize-none"></textarea>
             </div>
-            
+
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upload Files (Optional)</label>
-              <input type="file" id="chatbotFiles" multiple accept=".pdf,.txt,.json,.md" class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Upload PDF, TXT, JSON, or MD files to enhance knowledge base</p>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upload Files
+                (Optional)</label>
+              <input type="file" id="chatbotFiles" multiple accept=".pdf,.txt,.json,.md"
+                class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800">
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Upload PDF, TXT, JSON, or MD files to enhance
+                knowledge base</p>
             </div>
           </div>
-          
+
           <div class="flex items-center justify-end gap-3 mt-6">
-            <button id="cancelChatbotBtn" class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+            <button id="cancelChatbotBtn"
+              class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
               Cancel
             </button>
-            <button id="createChatbotBtn" class="px-6 py-2 bg-gradient-to-r from-gemini-blue to-gemini-green text-white rounded-lg hover:opacity-90 transition-opacity">
+            <button id="createChatbotBtn"
+              class="px-6 py-2 bg-gradient-to-r from-gemini-blue to-gemini-green text-white rounded-lg hover:opacity-90 transition-opacity">
               Create Chatbot
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Confirmation Modal -->
+  <div id="confirmModal" class="fixed inset-0 z-50 hidden">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm"></div>
+    <div class="fixed inset-0 flex items-center justify-center p-4">
+      <div
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md animate-slide-up">
+        <div class="p-6">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+              <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+            </div>
+            <div>
+              <h3 id="confirmTitle" class="text-lg font-semibold text-gray-900 dark:text-white">Confirm Action</h3>
+              <p class="text-sm text-gray-500 dark:text-gray-400">This action cannot be undone</p>
+            </div>
+          </div>
+
+          <p id="confirmMessage" class="text-gray-700 dark:text-gray-300 mb-6">Are you sure?</p>
+
+          <div class="flex items-center justify-end gap-3">
+            <button id="confirmCancel"
+              class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+              Cancel
+            </button>
+            <button id="confirmDelete"
+              class="px-6 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl">
+              <span id="confirmBtnIcon"><i class="fas fa-trash mr-2"></i></span><span id="confirmBtnText">Delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rename Chat Modal -->
+  <div id="renameChatModal" class="fixed inset-0 z-50 hidden">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" onclick="closeRenameModal()"></div>
+    <div class="fixed inset-0 flex items-center justify-center p-4">
+      <div
+        class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 w-full max-w-md animate-slide-up">
+        <div class="p-6">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Rename Chat</h3>
+
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Chat Title</label>
+            <input type="text" id="renameChatInput"
+              class="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              placeholder="Enter new chat title" onkeyup="if(event.key === 'Enter') confirmRenameChat()">
+          </div>
+
+          <div class="flex items-center justify-end gap-3">
+            <button onclick="closeRenameModal()"
+              class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors font-medium">
+              Cancel
+            </button>
+            <button onclick="confirmRenameChat()"
+              class="px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl font-medium">
+              Save Changes
             </button>
           </div>
         </div>
@@ -709,4 +1071,5 @@
 
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
+
 </html>

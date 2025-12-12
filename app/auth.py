@@ -1,33 +1,20 @@
 import re
 import hashlib
 import secrets
-import requests
+import uuid
 from flask import session
 from datetime import datetime
-from .database import user_db
+from .models import db, User
 
 class AuthManager:
     def __init__(self):
-        pass  # Using database now
+        pass
         
     def validate_email(self, email):
         # Basic format check
         pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         if not re.match(pattern, email):
             return False
-        
-        # Check for common invalid patterns
-        invalid_patterns = [
-            r'.*\.\.',  # Double dots
-            r'^\.',     # Starting with dot
-            r'\.$',     # Ending with dot
-            r'.*@.*@',  # Multiple @ symbols
-        ]
-        
-        for invalid_pattern in invalid_patterns:
-            if re.match(invalid_pattern, email):
-                return False
-        
         return True
     
     def verify_email_domain(self, email):
@@ -38,13 +25,12 @@ class AuthManager:
             valid_domains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com']
             if domain.lower() in valid_domains:
                 return True
-            
-            # For other domains, just return True (can add DNS lookup here)
             return True
         except:
             return False
     
     def validate_mobile(self, mobile):
+        if not mobile: return True
         pattern = r'^[+]?[1-9]\d{1,14}$'
         return re.match(pattern, mobile.replace(' ', '').replace('-', '')) is not None
     
@@ -54,132 +40,118 @@ class AuthManager:
         return salt + pwd_hash.hex()
     
     def verify_password(self, password, hashed):
-        salt = hashed[:32]
-        stored_hash = hashed[32:]
-        pwd_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
-        return pwd_hash.hex() == stored_hash
+        if not hashed: return False
+        try:
+            salt = hashed[:32]
+            stored_hash = hashed[32:]
+            pwd_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
+            return pwd_hash.hex() == stored_hash
+        except:
+            return False
     
     def register_user(self, email, mobile, password, name):
         if not self.validate_email(email):
             return {'success': False, 'error': 'Invalid email format'}
         
-        if not self.verify_email_domain(email):
-            return {'success': False, 'error': 'Invalid email domain'}
-        
-        if not self.validate_mobile(mobile):
-            return {'success': False, 'error': 'Invalid mobile number format'}
-        
         if len(password) < 6:
             return {'success': False, 'error': 'Password must be at least 6 characters'}
         
         # Check if email already exists
-        existing_user = user_db.get_user_by_email(email)
+        existing_user = User.query.filter_by(email=email).first()
         if existing_user:
             return {'success': False, 'error': 'Email already registered'}
         
-        user_id = secrets.token_hex(16)
+        user_id = str(uuid.uuid4())
         password_hash = self.hash_password(password)
         
-        # Create user in database
-        success = user_db.create_user(user_id, name, email, mobile, password_hash)
+        new_user = User(
+            id=user_id,
+            username=name,
+            email=email,
+            mobile=mobile,
+            password_hash=password_hash,
+            is_guest=False
+        )
         
-        if success:
+        try:
+            db.session.add(new_user)
+            db.session.commit()
             return {'success': True, 'user_id': user_id}
-        else:
-            return {'success': False, 'error': 'Failed to create user'}
+        except Exception as e:
+            db.session.rollback()
+            return {'success': False, 'error': f'Failed to create user: {str(e)}'}
     
     def login_user(self, email, password):
-        user = user_db.get_user_by_email(email)
+        user = User.query.filter_by(email=email).first()
         if not user:
             return {'success': False, 'error': 'Email not found'}
         
-        if not self.verify_password(password, user['password_hash']):
+        if not self.verify_password(password, user.password_hash):
             return {'success': False, 'error': 'Invalid password'}
         
         # Update last login
-        user_db.update_last_login(user['user_id'])
+        user.last_login = datetime.utcnow()
+        db.session.commit()
         
         # Set session
-        session['user_id'] = user['user_id']
-        session['user_email'] = user['email']
-        session['user_name'] = user['username']
+        session['user_id'] = user.id
+        session['user_email'] = user.email
+        session['user_name'] = user.username
+        session['is_guest'] = False
         
-        return {'success': True, 'user': {
-            'id': user['user_id'],
-            'email': user['email'],
-            'name': user['username']
-        }}
+        return {'success': True, 'user': user.to_dict()}
     
+    def create_guest_user(self):
+        """Create a temporary guest user"""
+        user_id = f"guest_{uuid.uuid4().hex[:8]}"
+        
+        # We don't necessarily need to save guests to DB unless we want to track them
+        # But to be consistent, let's save them with a flag
+        guest_user = User(
+            id=user_id,
+            username="Guest",
+            email=f"{user_id}@guest.local", # Dummy email
+            password_hash="",
+            is_guest=True
+        )
+        
+        try:
+            db.session.add(guest_user)
+            db.session.commit()
+            
+            session['user_id'] = user_id
+            session['user_name'] = "Guest"
+            session['is_guest'] = True
+            
+            return user_id
+        except Exception as e:
+            print(f"Error creating guest: {e}")
+            # Fallback to just session
+            session['user_id'] = user_id
+            return user_id
+
     def logout_user(self):
-        session.pop('user_id', None)
-        session.pop('user_email', None)
-        session.pop('user_name', None)
+        session.clear()
         return {'success': True}
     
     def is_authenticated(self):
         return 'user_id' in session
     
-    def google_login(self, id_token):
-        """Handle Google OAuth login with ID token"""
-        try:
-            import jwt
-            import json
-            
-            # Decode JWT token without verification for demo (in production, verify signature)
-            decoded = jwt.decode(id_token, options={"verify_signature": False})
-            
-            email = decoded.get('email')
-            name = decoded.get('name')
-            
-            if not email:
-                return {'success': False, 'error': 'Could not get email from Google'}
-            
-            # Check if user exists
-            existing_user = user_db.get_user_by_email(email)
-            
-            if existing_user:
-                # Login existing user
-                user_db.update_last_login(existing_user['user_id'])
-                session['user_id'] = existing_user['user_id']
-                session['user_email'] = existing_user['email']
-                session['user_name'] = existing_user['username']
-                
-                return {'success': True, 'user': {
-                    'id': existing_user['user_id'],
-                    'email': existing_user['email'],
-                    'name': existing_user['username']
-                }}
-            else:
-                # Create new user
-                user_id = secrets.token_hex(16)
-                success = user_db.create_user(user_id, name, email, '', '')
-                
-                if success:
-                    session['user_id'] = user_id
-                    session['user_email'] = email
-                    session['user_name'] = name
-                    
-                    return {'success': True, 'user': {
-                        'id': user_id,
-                        'email': email,
-                        'name': name
-                    }}
-                else:
-                    return {'success': False, 'error': 'Failed to create user'}
-                    
-        except Exception as e:
-            return {'success': False, 'error': f'Google login failed: {str(e)}'}
-    
     def get_current_user(self):
         if not self.is_authenticated():
             return None
         
+        user_id = session.get('user_id')
+        user = User.query.get(user_id)
+        if user:
+            return user.to_dict()
+        
+        # Fallback for session-only guests
         return {
-            'id': session.get('user_id'),
+            'id': user_id,
+            'name': session.get('user_name', 'Guest'),
             'email': session.get('user_email'),
-            'name': session.get('user_name')
+            'is_guest': session.get('is_guest', True)
         }
-    
-
 
 auth_manager = AuthManager()

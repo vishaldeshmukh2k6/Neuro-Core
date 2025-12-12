@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -15,17 +16,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    html { font-family: Inter, system-ui, sans-serif; }
+    html {
+      font-family: Inter, system-ui, sans-serif;
+    }
   </style>
 </head>
+
 <body class="h-full bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-900 dark:to-indigo-900">
   <div class="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
       <!-- Header -->
       <div class="text-center">
-        <div class="w-16 h-16 mx-auto bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
+        <div
+          class="w-16 h-16 mx-auto bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
           <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
         </div>
         <h2 class="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
@@ -39,7 +44,7 @@
         <!-- Login Form -->
         <div id="loginForm" class="space-y-6">
           <h3 class="text-xl font-semibold text-gray-900 dark:text-white text-center">Sign In</h3>
-          
+
           <form id="loginFormElement" class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
@@ -47,20 +52,20 @@
                 class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 placeholder="Enter your email">
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
               <input type="password" id="loginPassword" required
                 class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 placeholder="Enter your password">
             </div>
-            
-            <button type="submit" 
+
+            <button type="submit"
               class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-600 hover:to-purple-700 transition duration-200">
               Sign In
             </button>
           </form>
-          
+
           <!-- Google Login -->
           <div class="relative">
             <div class="absolute inset-0 flex items-center">
@@ -70,15 +75,14 @@
               <span class="px-2 bg-white dark:bg-gray-800 text-gray-500">Or continue with</span>
             </div>
           </div>
-          
-          <div id="g_id_onload"
-               data-client_id="YOUR_GOOGLE_CLIENT_ID"
-               data-callback="handleCredentialResponse">
+
+          <div id="g_id_onload" data-client_id="YOUR_GOOGLE_CLIENT_ID" data-callback="handleCredentialResponse">
           </div>
-          <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="continue_with" data-shape="rectangular" data-logo_alignment="left"></div>
-          
+          <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="continue_with"
+            data-shape="rectangular" data-logo_alignment="left"></div>
+
           <p class="text-center text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account? 
+            Don't have an account?
             <button id="showSignup" class="text-indigo-600 hover:text-indigo-500 font-medium">Sign up</button>
           </p>
         </div>
@@ -86,7 +90,7 @@
         <!-- Signup Form -->
         <div id="signupForm" class="space-y-6 hidden">
           <h3 class="text-xl font-semibold text-gray-900 dark:text-white text-center">Create Account</h3>
-          
+
           <form id="signupFormElement" class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
@@ -94,34 +98,34 @@
                 class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 placeholder="Enter your full name">
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
               <input type="email" id="signupEmail" required
                 class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 placeholder="Enter your email">
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mobile Number</label>
               <input type="tel" id="signupMobile" required
                 class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 placeholder="Enter your mobile number">
             </div>
-            
+
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Password</label>
               <input type="password" id="signupPassword" required
                 class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 placeholder="Create a password (min 6 characters)">
             </div>
-            
-            <button type="submit" 
+
+            <button type="submit"
               class="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:from-indigo-600 hover:to-purple-700 transition duration-200">
               Create Account
             </button>
           </form>
-          
+
           <!-- Google Signup -->
           <div class="relative">
             <div class="absolute inset-0 flex items-center">
@@ -131,25 +135,26 @@
               <span class="px-2 bg-white dark:bg-gray-800 text-gray-500">Or sign up with</span>
             </div>
           </div>
-          
-          <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signup_with" data-shape="rectangular" data-logo_alignment="left"></div>
-          
+
+          <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="signup_with"
+            data-shape="rectangular" data-logo_alignment="left"></div>
+
           <p class="text-center text-sm text-gray-600 dark:text-gray-400">
-            Already have an account? 
+            Already have an account?
             <button id="showLogin" class="text-indigo-600 hover:text-indigo-500 font-medium">Sign in</button>
           </p>
         </div>
 
         <!-- Error/Success Messages -->
         <div id="authMessage" class="hidden mt-4 p-3 rounded-lg text-sm text-center"></div>
-        
+
         <!-- Guest Access -->
         <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-600">
           <div class="text-center">
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
               Want to try without signing up?
             </p>
-            <button id="continueAsGuest" 
+            <button id="continueAsGuest"
               class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition duration-200">
               Continue as Guest
             </button>
@@ -161,7 +166,7 @@
 
   <script>
     // Theme detection
-    const theme = localStorage.getItem('theme') || 
+    const theme = localStorage.getItem('theme') ||
       (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -188,9 +193,8 @@
 
     function showMessage(message, isError = false) {
       authMessage.textContent = message;
-      authMessage.className = `mt-4 p-3 rounded-lg text-sm text-center ${
-        isError ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-green-100 text-green-700 border border-green-200'
-      }`;
+      authMessage.className = `mt-4 p-3 rounded-lg text-sm text-center ${isError ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-green-100 text-green-700 border border-green-200'
+        }`;
       authMessage.classList.remove('hidden');
     }
 
@@ -203,6 +207,12 @@
       e.preventDefault();
       const email = document.getElementById('loginEmail').value;
       const password = document.getElementById('loginPassword').value;
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn.innerHTML;
+
+      // Show spinner
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Signing In...';
 
       try {
         const response = await fetch('/auth/login', {
@@ -212,15 +222,18 @@
         });
 
         const data = await response.json();
-        
+
         if (data.success) {
-          showMessage('Login successful! Redirecting...', false);
-          setTimeout(() => window.location.href = '/', 1500);
+          window.location.href = '/chat';
         } else {
           showMessage(data.error, true);
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnText;
         }
       } catch (error) {
         showMessage('Network error. Please try again.', true);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
       }
     });
 
@@ -231,6 +244,12 @@
       const email = document.getElementById('signupEmail').value;
       const mobile = document.getElementById('signupMobile').value;
       const password = document.getElementById('signupPassword').value;
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn.innerHTML;
+
+      // Show spinner
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Creating Account...';
 
       try {
         const response = await fetch('/auth/signup', {
@@ -240,35 +259,41 @@
         });
 
         const data = await response.json();
-        
+
         if (data.success) {
           showMessage('Account created successfully! Please sign in.', false);
           setTimeout(() => {
             signupForm.classList.add('hidden');
             loginForm.classList.remove('hidden');
             clearMessage();
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
           }, 2000);
         } else {
           showMessage(data.error, true);
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnText;
         }
       } catch (error) {
         showMessage('Network error. Please try again.', true);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnText;
       }
     });
-    
+
     // Email validation
     function validateEmail(email) {
       const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (!pattern.test(email)) return false;
-      
+
       // Check for invalid patterns
       if (email.includes('..') || email.startsWith('.') || email.endsWith('.') || (email.match(/@/g) || []).length !== 1) {
         return false;
       }
-      
+
       return true;
     }
-    
+
     // Real-time email validation
     document.getElementById('loginEmail').addEventListener('input', (e) => {
       const email = e.target.value;
@@ -278,7 +303,7 @@
         e.target.style.borderColor = '';
       }
     });
-    
+
     document.getElementById('signupEmail').addEventListener('input', (e) => {
       const email = e.target.value;
       if (email && !validateEmail(email)) {
@@ -287,7 +312,7 @@
         e.target.style.borderColor = '';
       }
     });
-    
+
     // Google login handlers
     async function handleGoogleAuth(response) {
       try {
@@ -296,9 +321,9 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ credential: response.credential })
         });
-        
+
         const data = await res.json();
-        
+
         if (data.success) {
           showMessage('Google login successful! Redirecting...', false);
           setTimeout(() => window.location.href = '/', 1500);
@@ -309,10 +334,10 @@
         showMessage('Google login failed. Please try again.', true);
       }
     }
-    
+
     // Initialize Google Sign-In with retry mechanism
     let googleInitialized = false;
-    
+
     function initializeGoogle() {
       if (typeof google !== 'undefined' && google.accounts) {
         google.accounts.id.initialize({
@@ -325,23 +350,24 @@
         setTimeout(initializeGoogle, 500);
       }
     }
-    
+
     // Start initialization after DOM loads
     document.addEventListener('DOMContentLoaded', () => {
       setTimeout(initializeGoogle, 1000);
     });
-    
+
     // Google Sign-In callback
     function handleCredentialResponse(response) {
       handleGoogleAuth(response);
     }
-    
+
     window.handleCredentialResponse = handleCredentialResponse;
-    
+
     // Guest access handler
     document.getElementById('continueAsGuest').addEventListener('click', () => {
       window.location.href = '/';
     });
   </script>
 </body>
+
 </html>

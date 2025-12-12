@@ -1,31 +1,44 @@
 import os, uuid, json
 from flask import Blueprint, render_template, request, jsonify, session, Response, stream_with_context, redirect, url_for
 from werkzeug.utils import secure_filename
-from .helpers import ensure_history, build_ollama_content, extract_personal_info, extract_teaching_command, extract_api_command, fetch_api_data, store_api_data
+from .helpers import build_ollama_content, extract_personal_info, extract_teaching_command, extract_api_command, fetch_api_data, store_api_data
+from .session_manager import ChatSessionManager
+from .chat_memory import ChatMemoryManager
 from .openai_client import client
 from .langchain_client import langchain_client
 from .config import UPLOAD_DIR, SYSTEM_PROMPT, OLLAMA_MODEL
 from .auth import auth_manager
 from .database import user_db
+from .ai_trainer import ai_trainer
 
 bp = Blueprint("main", __name__)
 
 @bp.route("/")
 def home():
     """Landing page"""
-    return render_template("home.html")
+    user = auth_manager.get_current_user()
+    return render_template("home.html", user=user)
 
 @bp.route("/chat")
 def chat_interface():
     """Main chat interface"""
-    history = ensure_history()
     user = auth_manager.get_current_user()
-    
-    return render_template("index.html", history=history, user=user)
+    active_chat_id = request.args.get('id')
+    return render_template("index.html", history=[], user=user, active_chat_id=active_chat_id)
 
 @bp.route("/auth")
 def auth_page():
     return render_template("auth.html")
+
+@bp.route("/chatbot/coming-soon")
+def chatbot_coming_soon():
+    return render_template("coming_soon.html")
+
+@bp.route("/chatbot")
+def chatbot_interface():
+    """Chatbot interface (Coming Soon)"""
+    user = auth_manager.get_current_user()
+    return render_template("index.html", user=user, show_chatbot_coming_soon=True)
 
 @bp.post("/auth/login")
 def login():
@@ -76,10 +89,16 @@ def get_user_status():
     return jsonify({'is_authenticated': bool(user), 'user': user})
 
 
-
+@bp.route("/user-status")
+def user_status():
+    user = auth_manager.get_current_user()
+    return jsonify({
+        "is_authenticated": user is not None and not user.get('is_guest', False),
+        "user": user
+    })
 @bp.post("/clear")
 def clear():
-    session["history"] = []
+    ChatMemoryManager.clear_active_chat_history()
     return jsonify({"ok": True})
 
 @bp.post("/upload")
@@ -152,9 +171,9 @@ def chat():
     if not user_msg and not image_url:
         return jsonify({"error": "empty message"}), 400
 
-    history = ensure_history()
-    history.append({"role": "user", "content": user_msg, "image_url": image_url})
-    session.modified = True
+    # Add user message to history first
+    ChatMemoryManager.add_to_active_chat_history({"role": "user", "content": user_msg, "image_url": image_url})
+    history = ChatMemoryManager.get_active_chat_history()
 
     # Check for personal info, teaching commands, or API commands first
     personal_response = extract_personal_info(user_msg)
@@ -191,7 +210,14 @@ def chat():
                 elif msg["role"] == "assistant":
                     chat_history.append({"role": "assistant", "content": msg["content"]})
             
-            reply = langchain_client.generate_response(user_msg, chat_history, image_url)
+            # Get enhanced system prompt with training data
+            enhanced_prompt = ai_trainer.get_enhanced_system_prompt(SYSTEM_PROMPT)
+            training_context = ai_trainer.get_training_context(user_msg)
+            
+            # Add training context to user message if available
+            enhanced_user_msg = f"{training_context}\n{user_msg}" if training_context else user_msg
+            
+            reply = langchain_client.generate_response(enhanced_user_msg, chat_history, image_url)
         except Exception:
             try:
                 reply = call_openai_sync(user_msg, image_url) if client else "AI client not configured."
@@ -202,8 +228,7 @@ def chat():
     if reply is None:
         reply = "I'm sorry, I couldn't generate a response. Please try again."
 
-    history.append({"role": "assistant", "content": reply})
-    session.modified = True
+    ChatMemoryManager.add_to_active_chat_history({"role": "assistant", "content": reply})
     return jsonify({"reply": reply})
 
 @bp.post("/teach")
@@ -228,8 +253,7 @@ def get_memory():
     if not auth_manager.is_authenticated():
         return jsonify({"error": "Memory access requires login"}), 401
     
-    from .helpers import ensure_memory
-    memory = ensure_memory()
+    memory = ChatMemoryManager.get_active_chat_memory()
     return jsonify({"memory": memory})
 
 @bp.post("/stream")
@@ -241,9 +265,9 @@ def stream():
     if not user_msg and not image_url:
         return jsonify({"error": "empty message"}), 400
 
-    history = ensure_history()
-    history.append({"role": "user", "content": user_msg, "image_url": image_url})
-    session.modified = True
+    # Add user message to history first
+    ChatMemoryManager.add_to_active_chat_history({"role": "user", "content": user_msg, "image_url": image_url})
+    history = ChatMemoryManager.get_active_chat_history()
 
     # Check for personal info or teaching commands first
     personal_response = extract_personal_info(user_msg)
@@ -252,13 +276,11 @@ def stream():
     
     if personal_response:
         reply = personal_response
-        history.append({"role": "assistant", "content": reply})
-        session.modified = True
+        ChatMemoryManager.add_to_active_chat_history({"role": "assistant", "content": reply})
         return jsonify({"reply": reply})
     elif teaching_response:
         reply = teaching_response
-        history.append({"role": "assistant", "content": reply})
-        session.modified = True
+        ChatMemoryManager.add_to_active_chat_history({"role": "assistant", "content": reply})
         return jsonify({"reply": reply})
     elif api_command:
         if api_command == "URL_NOT_FOUND":
@@ -276,14 +298,12 @@ def stream():
             except Exception as e:
                 reply = f" Error processing API request: {str(e)}"
         
-        history.append({"role": "assistant", "content": reply})
-        session.modified = True
+        ChatMemoryManager.add_to_active_chat_history({"role": "assistant", "content": reply})
         return jsonify({"reply": reply})
 
     if not client:
         reply = "AI client not configured."
-        history.append({"role": "assistant", "content": reply})
-        session.modified = True
+        ChatMemoryManager.add_to_active_chat_history({"role": "assistant", "content": reply})
         return jsonify({"reply": reply})
 
     @stream_with_context
@@ -303,13 +323,11 @@ def stream():
                 yield f"data: {json.dumps({'delta': chunk})}\n\n"
             
             final_text = "".join(full_chunks).strip()
-            history.append({"role": "assistant", "content": final_text})
-            session.modified = True
+            ChatMemoryManager.add_to_active_chat_history({"role": "assistant", "content": final_text})
             yield f"data: {json.dumps({'done': True})}\n\n"
         except Exception as e:
             err = f"AI stream error: {e}"
-            history.append({"role": "assistant", "content": err})
-            session.modified = True
+            ChatMemoryManager.add_to_active_chat_history({"role": "assistant", "content": err})
             yield f"data: {json.dumps({'delta': err})}\n\n"
             yield f"data: {json.dumps({'done': True})}\n\n"
     return Response(ollama_stream(), mimetype="text/event-stream")
@@ -391,3 +409,6 @@ def get_available_models():
 
 
 
+@bp.route('/favicon.ico')
+def favicon():
+    return '', 204

@@ -4,81 +4,31 @@ from flask import request, session, current_app
 from .pdf_utils import extract_pdf_text
 from .config import UPLOAD_DIR
 from datetime import datetime
-
-# Global memory storage that persists across sessions
-GLOBAL_MEMORY_FILE = os.path.join(UPLOAD_DIR, "global_memory.json")
-
-
-def load_global_memory():
-    try:
-        if os.path.exists(GLOBAL_MEMORY_FILE):
-            with open(GLOBAL_MEMORY_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-    except Exception:
-        pass
-    return {}
-
-
-def save_global_memory(memory_data):
-    try:
-        with open(GLOBAL_MEMORY_FILE, 'w', encoding='utf-8') as f:
-            json.dump(memory_data, f, ensure_ascii=False, indent=2)
-    except Exception:
-        pass
-
-
-def ensure_history():
-    if "history" not in session:
-        session["history"] = []
-    return session["history"]
-
-
-def ensure_memory():
-    """Ensure user memory exists in session and global storage"""
-    # First check global memory
-    global_memory = load_global_memory()
-    
-    # Then check session memory
-    if "memory" not in session:
-        session["memory"] = {}
-    
-    # Merge global memory with session memory
-    merged_memory = {**global_memory, **session["memory"]}
-    
-    # Update session with merged memory
-    session["memory"] = merged_memory
-    session.modified = True
-    
-    return merged_memory
-
-
-def update_memory(key: str, value: str):
-    global_memory = load_global_memory()
-    global_memory[key] = value
-    save_global_memory(global_memory)
-    
-    memory = ensure_memory()
-    memory[key] = value
-    session["memory"] = memory
-    session.modified = True
-    
-    return memory
-
+from .chat_memory import ChatMemoryManager
 
 def get_memory_context():
     """Get formatted memory context for AI"""
-    memory = ensure_memory()
+    memory = ChatMemoryManager.get_active_chat_memory()
     if not memory:
         return ""
     
     context_parts = []
     for key, value in memory.items():
-        if key != "files":  # Don't include files in general memory context
+        if key not in ["files", "apis", "history", "lessons"]:  # Don't include complex structures in general memory context
             context_parts.append(f"{key}: {value}")
     
+    # Add lessons if available
+    if "lessons" in memory and memory["lessons"]:
+        lessons_str = "; ".join(memory["lessons"])
+        context_parts.append(f"Learned Facts: {lessons_str}")
+    
     if context_parts:
-        return f"[User Information: {', '.join(context_parts)}]\n\n"
+        return f"[Chat Memory: {', '.join(context_parts)}]\n\n"
     return ""
+
+def update_memory(key: str, value: str):
+    """Update memory for active chat"""
+    return ChatMemoryManager.update_active_chat_memory(key, value)
 
 
 def extract_personal_info(user_msg: str):
@@ -129,9 +79,6 @@ def is_local_url(url: str) -> bool:
         return False
     except Exception:
         return False
-
-
-
 
 
 def _tokenize_query_for_json(query: str) -> list:
@@ -210,13 +157,16 @@ def extract_file_content_to_memory(file_path: str):
     try:
         lower = file_path.lower()
         file_name = os.path.basename(file_path)
-        global_memory = load_global_memory()
-        if "files" not in global_memory:
-            global_memory["files"] = {}
         
+        # Get current memory for the active chat
+        memory = ChatMemoryManager.get_active_chat_memory()
+        if "files" not in memory:
+            memory["files"] = {}
+        
+        file_data = {}
         if lower.endswith('.pdf'):
             pdf_text = extract_pdf_text(file_path)
-            global_memory["files"][file_name] = {
+            file_data = {
                 "type": "pdf",
                 "content": pdf_text,
                 "uploaded_at": str(datetime.now())
@@ -225,7 +175,7 @@ def extract_file_content_to_memory(file_path: str):
             with open(file_path, 'r', encoding='utf-8') as f:
                 parsed = json.load(f)
             pretty = json.dumps(parsed, ensure_ascii=False, indent=2)
-            global_memory["files"][file_name] = {
+            file_data = {
                 "type": "json",
                 "content": pretty,
                 "json": parsed,
@@ -234,33 +184,29 @@ def extract_file_content_to_memory(file_path: str):
         else:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-            global_memory["files"][file_name] = {
+            file_data = {
                 "type": "text",
                 "content": content,
                 "uploaded_at": str(datetime.now())
             }
         
-        save_global_memory(global_memory)
+        memory["files"][file_name] = file_data
+        ChatMemoryManager.update_active_chat_memory("files", memory["files"])
         
-        memory = ensure_memory()
-        memory["files"] = global_memory["files"]
-        session["memory"] = memory
-        session.modified = True
-        
-        return f"Successfully read and stored {global_memory['files'][file_name]['type']} content: {file_name}"
+        return f"Successfully read and stored {file_data['type']} content: {file_name}"
     except Exception as e:
         return f"Error reading file: {str(e)}"
 
 
 def get_file_context_for_question(question: str):
-    global_memory = load_global_memory()
-    if "files" not in global_memory or not global_memory["files"]:
+    memory = ChatMemoryManager.get_active_chat_memory()
+    if "files" not in memory or not memory["files"]:
         return ""
     
     relevant_content = []
     question_lower = question.lower()
     
-    for file_name, file_info in global_memory["files"].items():
+    for file_name, file_info in memory["files"].items():
         content = file_info["content"]
         ftype = file_info.get("type")
         
@@ -312,13 +258,12 @@ def build_ollama_content(user_msg: str, image_url: str | None = None, system_pro
 
 def teach_ai(lesson: str):
     """Teach the AI new information"""
-    memory = ensure_memory()
+    memory = ChatMemoryManager.get_active_chat_memory()
     if "lessons" not in memory:
         memory["lessons"] = []
     
     memory["lessons"].append(lesson)
-    session["memory"] = memory
-    session.modified = True
+    ChatMemoryManager.update_active_chat_memory("lessons", memory["lessons"])
     return f"I've learned: {lesson}"
 
 
@@ -396,25 +341,20 @@ def fetch_api_data(api_url: str, api_key: str = None, headers: dict = None):
 
 def store_api_data(api_url: str, api_data: dict, api_key: str = None):
     try:
-        global_memory = load_global_memory()
-        if "apis" not in global_memory:
-            global_memory["apis"] = {}
+        memory = ChatMemoryManager.get_active_chat_memory()
+        if "apis" not in memory:
+            memory["apis"] = {}
         
-        api_key_name = f"api_{len(global_memory.get('apis', {})) + 1}"
+        api_key_name = f"api_{len(memory.get('apis', {})) + 1}"
         
-        global_memory["apis"][api_key_name] = {
+        memory["apis"][api_key_name] = {
             "url": api_url,
             "data": api_data,
             "fetched_at": str(datetime.now()),
             "api_key_provided": bool(api_key)
         }
         
-        save_global_memory(global_memory)
-        
-        memory = ensure_memory()
-        memory["apis"] = global_memory["apis"]
-        session["memory"] = memory
-        session.modified = True
+        ChatMemoryManager.update_active_chat_memory("apis", memory["apis"])
         
         return f"Successfully fetched and stored data from API: {api_url}"
         
@@ -423,14 +363,14 @@ def store_api_data(api_url: str, api_data: dict, api_key: str = None):
 
 
 def get_api_context_for_question(question: str):
-    global_memory = load_global_memory()
-    if "apis" not in global_memory or not global_memory["apis"]:
+    memory = ChatMemoryManager.get_active_chat_memory()
+    if "apis" not in memory or not memory["apis"]:
         return ""
     
     relevant_content = []
     question_lower = question.lower()
     
-    for api_key, api_info in global_memory["apis"].items():
+    for api_key, api_info in memory["apis"].items():
         api_data = api_info["data"]
         api_url = api_info["url"]
         

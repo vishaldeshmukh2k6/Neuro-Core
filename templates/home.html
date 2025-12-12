@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" class="h-full">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,8 +18,7 @@
           },
           animation: {
             'float': 'float 6s ease-in-out infinite',
-            'glow': 'glow 2s ease-in-out infinite alternate',
-            'bounce-slow': 'bounce 3s infinite'
+            'glow': 'glow 2s ease-in-out infinite alternate'
           }
         }
       }
@@ -28,13 +28,27 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-20px); }
+
+      0%,
+      100% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-20px);
+      }
     }
+
     @keyframes glow {
-      from { box-shadow: 0 0 20px rgba(79, 70, 229, 0.3); }
-      to { box-shadow: 0 0 30px rgba(79, 70, 229, 0.6); }
+      from {
+        box-shadow: 0 0 20px rgba(79, 70, 229, 0.3);
+      }
+
+      to {
+        box-shadow: 0 0 30px rgba(79, 70, 229, 0.6);
+      }
     }
+
     .gradient-text {
       background: linear-gradient(135deg, #4f46e5, #06b6d4, #f59e0b);
       -webkit-background-clip: text;
@@ -43,15 +57,19 @@
     }
   </style>
 </head>
-<body class="h-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-slate-800 dark:to-indigo-900 text-gray-900 dark:text-gray-100 font-['Inter']">
-  
+
+<body
+  class="h-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-slate-800 dark:to-indigo-900 text-gray-900 dark:text-gray-100 font-['Inter']">
+
   <!-- Navigation -->
-  <nav class="fixed top-0 w-full z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-700/50">
+  <nav
+    class="fixed top-0 w-full z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200/50 dark:border-gray-700/50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
         <!-- Logo -->
         <div class="flex items-center space-x-3">
-          <div class="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg">
+          <div
+            class="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg">
             <i class="fas fa-brain text-white text-lg"></i>
           </div>
           <div>
@@ -59,222 +77,377 @@
             <p class="text-xs text-gray-500 dark:text-gray-400">AI Assistant</p>
           </div>
         </div>
-        
+
         <!-- Navigation Links -->
         <div class="hidden md:flex items-center space-x-8">
           <a href="#features" class="text-gray-600 dark:text-gray-300 hover:text-primary transition-colors">Features</a>
-          <a href="#models" class="text-gray-600 dark:text-gray-300 hover:text-primary transition-colors">AI Models</a>
+          <a href="#session-management"
+            class="text-gray-600 dark:text-gray-300 hover:text-primary transition-colors">Session Management</a>
           <a href="#about" class="text-gray-600 dark:text-gray-300 hover:text-primary transition-colors">About</a>
         </div>
-        
+
+        <!-- Action Buttons -->
         <!-- Action Buttons -->
         <div class="flex items-center space-x-4">
           <button id="themeToggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
             <i class="fas fa-moon dark:hidden"></i>
             <i class="fas fa-sun hidden dark:block"></i>
           </button>
-          <a href="/chat" class="bg-gradient-to-r from-primary to-secondary text-white px-6 py-2 rounded-xl hover:shadow-lg transition-all duration-200 font-medium">
-            Start Chat
-          </a>
+
+          {% if user and not user.is_guest %}
+          <!-- User Dropdown -->
+          <div class="relative group">
+            <button
+              class="flex items-center space-x-2 p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <div
+                class="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white font-bold text-sm">
+                {{ user.name[:2].upper() }}
+              </div>
+              <span class="text-sm font-medium hidden sm:block">{{ user.name }}</span>
+              <i class="fas fa-chevron-down text-xs text-gray-500"></i>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div
+              class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 hidden group-hover:block animate-fade-in">
+              <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ user.name }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ user.email }}</p>
+              </div>
+              <div class="p-2">
+                <a href="/chat"
+                  class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                  <i class="fas fa-comments mr-2 text-primary"></i>My Chats
+                </a>
+                <button onclick="logout()"
+                  class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+                  <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                </button>
+              </div>
+            </div>
+          </div>
+          {% else %}
+          <a href="/auth"
+            class="text-gray-600 dark:text-gray-300 hover:text-primary font-medium transition-colors">Login</a>
+          <button onclick="window.location.href='/chat'"
+            class="bg-gradient-to-r from-primary to-secondary text-white px-6 py-2 rounded-xl hover:shadow-lg transition-all duration-200 font-medium">
+            Get Started
+          </button>
+          {% endif %}
         </div>
       </div>
     </div>
   </nav>
 
   <!-- Hero Section -->
-  <section class="pt-24 pb-16 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto text-center">
-      <!-- Main Hero Content -->
-      <div class="mb-16">
-        <div class="w-24 h-24 mx-auto mb-8 bg-gradient-to-r from-primary via-secondary to-accent rounded-3xl flex items-center justify-center shadow-2xl animate-glow">
-          <i class="fas fa-sparkles text-white text-3xl"></i>
+  <section class="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <!-- Interactive Background Particles -->
+    <div id="particles-js" class="absolute inset-0 opacity-30 pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto text-center relative z-10">
+      <div class="mb-16 perspective-1000">
+        <div id="hero-icon"
+          class="w-28 h-28 mx-auto mb-8 bg-gradient-to-r from-primary to-secondary rounded-[2rem] flex items-center justify-center shadow-2xl animate-float cursor-pointer transition-transform duration-500 hover:scale-110 hover:rotate-12">
+          <i class="fas fa-brain text-white text-5xl animate-pulse"></i>
         </div>
-        
-        <h1 class="text-5xl md:text-7xl font-bold mb-6">
-          <span class="gradient-text">Neuro-Core</span>
+
+        <h1 class="text-6xl md:text-8xl font-bold mb-8 tracking-tight">
+          <span
+            class="gradient-text inline-block transform hover:scale-105 transition-transform duration-300">Neuro-Core</span>
           <br>
-          <span class="text-gray-700 dark:text-gray-300">AI Assistant</span>
+          <span class="text-gray-700 dark:text-gray-300 text-4xl md:text-6xl mt-2 block">AI Assistant</span>
         </h1>
-        
-        <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-8 max-w-3xl mx-auto leading-relaxed">
-          Experience the future of AI with our advanced assistant featuring memory, file processing, and multi-model support
+
+        <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-10 max-w-3xl mx-auto leading-relaxed opacity-0 animate-fade-in-up"
+          style="animation-delay: 0.3s; animation-fill-mode: forwards;">
+          Experience the next generation of AI with <span class="text-primary font-semibold">memory isolation</span>,
+          <span class="text-secondary font-semibold">context awareness</span>, and
+          <span class="text-accent font-semibold">adaptive learning</span>.
         </p>
-        
+
         <!-- CTA Buttons -->
         <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-          <a href="/chat" class="bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-2xl hover:shadow-xl transition-all duration-200 font-semibold text-lg flex items-center space-x-2">
+          <button onclick="window.location.href='/chat'"
+            class="bg-gradient-to-r from-primary to-secondary text-white px-8 py-4 rounded-2xl hover:shadow-xl transition-all duration-200 font-semibold text-lg flex items-center space-x-2">
             <i class="fas fa-rocket"></i>
             <span>Start Chatting</span>
-          </a>
-          <a href="#features" class="border-2 border-primary text-primary px-8 py-4 rounded-2xl hover:bg-primary hover:text-white transition-all duration-200 font-semibold text-lg">
+          </button>
+          <a href="#features"
+            class="border-2 border-primary text-primary px-8 py-4 rounded-2xl hover:bg-primary hover:text-white transition-all duration-200 font-semibold text-lg">
             Learn More
           </a>
         </div>
-        
+
         <!-- Stats -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
           <div class="text-center">
-            <div class="text-3xl font-bold text-primary mb-2">3+</div>
-            <div class="text-gray-600 dark:text-gray-400">AI Models</div>
+            <div class="text-3xl font-bold text-primary mb-2">∞</div>
+            <div class="text-gray-600 dark:text-gray-400">Users</div>
           </div>
           <div class="text-center">
             <div class="text-3xl font-bold text-secondary mb-2">∞</div>
-            <div class="text-gray-600 dark:text-gray-400">Memory</div>
+            <div class="text-gray-600 dark:text-gray-400">Chats</div>
           </div>
           <div class="text-center">
-            <div class="text-3xl font-bold text-accent mb-2">24/7</div>
+            <div class="text-3xl font-bold text-accent mb-2">100%</div>
+            <div class="text-gray-600 dark:text-gray-400">Isolated</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl font-bold text-primary mb-2">24/7</div>
             <div class="text-gray-600 dark:text-gray-400">Available</div>
           </div>
-          <div class="text-center">
-            <div class="text-3xl font-bold text-primary mb-2">100%</div>
-            <div class="text-gray-600 dark:text-gray-400">Private</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Session Management Section -->
+  <section id="session-management" class="py-20 bg-white/50 dark:bg-gray-800/50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold mb-4 gradient-text">Advanced Session Management</h2>
+        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          User-specific sessions with per-chat memory isolation for complete privacy
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- User Isolation -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700">
+          <div
+            class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6">
+            <i class="fas fa-users text-white text-2xl"></i>
           </div>
+          <h3 class="text-xl font-semibold mb-4">User Isolation</h3>
+          <p class="text-gray-600 dark:text-gray-400">Each user gets a unique session namespace with complete data
+            separation and independent memory contexts.</p>
+        </div>
+
+        <!-- Per-Chat Memory -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700">
+          <div
+            class="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-6">
+            <i class="fas fa-comments text-white text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold mb-4">Per-Chat Memory</h3>
+          <p class="text-gray-600 dark:text-gray-400">Multiple chat sessions per user with isolated memory for each
+            conversation and fresh context for new chats.</p>
+        </div>
+
+
+
+        <!-- Session Persistence -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700">
+          <div
+            class="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6">
+            <i class="fas fa-database text-white text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold mb-4">Session Persistence</h3>
+          <p class="text-gray-600 dark:text-gray-400">Redis backend with filesystem fallback ensures sessions persist
+            across browser restarts and server reboots.</p>
+        </div>
+
+        <!-- Chat Switching -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700">
+          <div
+            class="w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl flex items-center justify-center mb-6">
+            <i class="fas fa-exchange-alt text-white text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold mb-4">Chat Switching</h3>
+          <p class="text-gray-600 dark:text-gray-400">Seamlessly switch between different chat contexts while preserving
+            conversation history and memory.</p>
+        </div>
+
+        <!-- Memory Isolation -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700">
+          <div
+            class="w-16 h-16 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center mb-6">
+            <i class="fas fa-shield-alt text-white text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold mb-4">Memory Isolation</h3>
+          <p class="text-gray-600 dark:text-gray-400">Complete memory sandboxing ensures no data leakage between users
+            or different chat sessions.</p>
+        </div>
+
+        <!-- Scalable Architecture -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700">
+          <div
+            class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-6">
+            <i class="fas fa-expand-arrows-alt text-white text-2xl"></i>
+          </div>
+          <h3 class="text-xl font-semibold mb-4">Scalable Design</h3>
+          <p class="text-gray-600 dark:text-gray-400">Built to support unlimited users and chats with efficient session
+            management and optimized performance.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Future Features Section -->
+  <section class="py-20 bg-gradient-to-br from-indigo-900 to-purple-900 text-white relative overflow-hidden">
+    <!-- Decorative background elements -->
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden opacity-20">
+      <div class="absolute -top-24 -left-24 w-96 h-96 bg-blue-500 rounded-full blur-3xl"></div>
+      <div class="absolute bottom-0 right-0 w-96 h-96 bg-purple-500 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="text-center mb-16">
+        <span
+          class="bg-white/10 text-white px-4 py-1 rounded-full text-sm font-medium mb-4 inline-block backdrop-blur-sm border border-white/20">Coming
+          Soon</span>
+        <h2 class="text-4xl md:text-5xl font-bold mb-6">Build Your Own AI Workforce</h2>
+        <p class="text-xl text-gray-300 max-w-2xl mx-auto">
+          The next evolution of Neuro-Core will empower you to create, train, and deploy custom AI agents tailored to
+          your specific needs.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div
+          class="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/10 hover:bg-white/20 transition-all duration-300">
+          <div
+            class="w-14 h-14 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+            <i class="fas fa-graduation-cap text-white text-2xl"></i>
+          </div>
+          <h3 class="text-2xl font-bold mb-4">Train Your Way</h3>
+          <p class="text-gray-300 leading-relaxed">
+            Upload your own PDFs, documents, and datasets to create a knowledge base unique to your business or personal
+            needs.
+          </p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div
+          class="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/10 hover:bg-white/20 transition-all duration-300">
+          <div
+            class="w-14 h-14 bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+            <i class="fas fa-code-branch text-white text-2xl"></i>
+          </div>
+          <h3 class="text-2xl font-bold mb-4">Embed Anywhere</h3>
+          <p class="text-gray-300 leading-relaxed">
+            Generate a simple code snippet to embed your custom-trained chatbot directly into your own website or
+            application.
+          </p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div
+          class="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/10 hover:bg-white/20 transition-all duration-300">
+          <div
+            class="w-14 h-14 bg-gradient-to-br from-orange-400 to-red-500 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+            <i class="fas fa-network-wired text-white text-2xl"></i>
+          </div>
+          <h3 class="text-2xl font-bold mb-4">Knowledge Connect</h3>
+          <p class="text-gray-300 leading-relaxed">
+            Connect multiple data sources including web links, APIs, and cloud storage to keep your AI's knowledge
+            always up-to-date.
+          </p>
+        </div>
+
+        <!-- Feature 4 -->
+        <div
+          class="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/10 hover:bg-white/20 transition-all duration-300">
+          <div
+            class="w-14 h-14 bg-gradient-to-br from-teal-400 to-emerald-500 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+            <i class="fas fa-building text-white text-2xl"></i>
+          </div>
+          <h3 class="text-2xl font-bold mb-4">Organization Bots</h3>
+          <p class="text-gray-300 leading-relaxed">
+            Deploy specialized chatbots for your entire organization. Streamline internal support, HR queries, and
+            knowledge sharing.
+          </p>
+        </div>
+
+        <!-- Feature 5 -->
+        <div
+          class="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/10 hover:bg-white/20 transition-all duration-300">
+          <div
+            class="w-14 h-14 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+            <i class="fas fa-microphone-alt text-white text-2xl"></i>
+          </div>
+          <h3 class="text-2xl font-bold mb-4">Voice Interaction</h3>
+          <p class="text-gray-300 leading-relaxed">
+            Talk to your AI naturally. Real-time voice processing and response generation for hands-free assistance.
+          </p>
+        </div>
+
+        <!-- Feature 6 -->
+        <div
+          class="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/10 hover:bg-white/20 transition-all duration-300">
+          <div
+            class="w-14 h-14 bg-gradient-to-br from-fuchsia-400 to-purple-500 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+            <i class="fas fa-eye text-white text-2xl"></i>
+          </div>
+          <h3 class="text-2xl font-bold mb-4">Visual Understanding</h3>
+          <p class="text-gray-300 leading-relaxed">
+            Upload images and videos for analysis. Let AI see what you see and provide deep visual insights.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-16 text-center">
+        <div
+          class="inline-flex items-center gap-2 text-gray-300 bg-white/5 px-6 py-3 rounded-xl border border-white/10">
+          <i class="fas fa-info-circle"></i>
+          <span>Early access rolling out to premium users soon</span>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Features Section -->
-  <section id="features" class="py-20 bg-white/50 dark:bg-gray-800/50">
+  <section id="features" class="py-20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-16">
-        <h2 class="text-4xl font-bold mb-4 gradient-text">Powerful Features</h2>
+        <h2 class="text-4xl font-bold mb-4 gradient-text">Core Features</h2>
         <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
           Everything you need for intelligent conversations and productivity
         </p>
       </div>
-      
+
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        <!-- Feature Cards -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700">
-          <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6">
+        <!-- Smart Memory -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700">
+          <div
+            class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6">
             <i class="fas fa-brain text-white text-2xl"></i>
           </div>
           <h3 class="text-xl font-semibold mb-4">Smart Memory</h3>
-          <p class="text-gray-600 dark:text-gray-400">Remembers your preferences, conversations, and learns from your interactions for personalized responses.</p>
+          <p class="text-gray-600 dark:text-gray-400">Remembers your preferences and learns from interactions for
+            personalized responses in each chat context.</p>
         </div>
-        
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700">
-          <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-6">
+
+        <!-- File Processing -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700">
+          <div
+            class="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-6">
             <i class="fas fa-file-alt text-white text-2xl"></i>
           </div>
           <h3 class="text-xl font-semibold mb-4">File Processing</h3>
-          <p class="text-gray-600 dark:text-gray-400">Upload and analyze PDFs, images, JSON files, and documents with intelligent content extraction.</p>
+          <p class="text-gray-600 dark:text-gray-400">Upload and analyze PDFs, images, JSON files, and documents with
+            intelligent content extraction.</p>
         </div>
-        
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700">
-          <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6">
+
+        <!-- Voice Input -->
+        <div
+          class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700">
+          <div
+            class="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6">
             <i class="fas fa-microphone text-white text-2xl"></i>
           </div>
           <h3 class="text-xl font-semibold mb-4">Voice Input</h3>
-          <p class="text-gray-600 dark:text-gray-400">Speak naturally with real-time speech-to-text conversion for hands-free interaction.</p>
-        </div>
-        
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700">
-          <div class="w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl flex items-center justify-center mb-6">
-            <i class="fas fa-bolt text-white text-2xl"></i>
-          </div>
-          <h3 class="text-xl font-semibold mb-4">Real-time Streaming</h3>
-          <p class="text-gray-600 dark:text-gray-400">Get instant responses with live streaming for natural, flowing conversations.</p>
-        </div>
-        
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700">
-          <div class="w-16 h-16 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center mb-6">
-            <i class="fas fa-api text-white text-2xl"></i>
-          </div>
-          <h3 class="text-xl font-semibold mb-4">API Integration</h3>
-          <p class="text-gray-600 dark:text-gray-400">Fetch and analyze data from external APIs for comprehensive information access.</p>
-        </div>
-        
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700">
-          <div class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-6">
-            <i class="fas fa-shield-alt text-white text-2xl"></i>
-          </div>
-          <h3 class="text-xl font-semibold mb-4">Privacy First</h3>
-          <p class="text-gray-600 dark:text-gray-400">Your data stays secure with local processing and encrypted storage options.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- AI Models Section -->
-  <section id="models" class="py-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-16">
-        <h2 class="text-4xl font-bold mb-4 gradient-text">Multiple AI Models</h2>
-        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-          Choose from different AI models for various tasks and preferences
-        </p>
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- Ollama -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700 text-center">
-          <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <i class="fas fa-server text-white text-2xl"></i>
-          </div>
-          <h3 class="text-2xl font-bold mb-4">Ollama</h3>
-          <p class="text-gray-600 dark:text-gray-400 mb-6">Local AI processing with Llama models for privacy and speed</p>
-          <div class="space-y-2 text-sm">
-            <div class="flex justify-between">
-              <span>Privacy:</span>
-              <span class="text-green-500 font-semibold">Excellent</span>
-            </div>
-            <div class="flex justify-between">
-              <span>Speed:</span>
-              <span class="text-blue-500 font-semibold">Fast</span>
-            </div>
-            <div class="flex justify-between">
-              <span>Cost:</span>
-              <span class="text-green-500 font-semibold">Free</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- ChatGPT -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700 text-center">
-          <div class="w-20 h-20 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <i class="fas fa-robot text-white text-2xl"></i>
-          </div>
-          <h3 class="text-2xl font-bold mb-4">ChatGPT</h3>
-          <p class="text-gray-600 dark:text-gray-400 mb-6">OpenAI's powerful language model for complex reasoning</p>
-          <div class="space-y-2 text-sm">
-            <div class="flex justify-between">
-              <span>Capability:</span>
-              <span class="text-green-500 font-semibold">Excellent</span>
-            </div>
-            <div class="flex justify-between">
-              <span>Knowledge:</span>
-              <span class="text-green-500 font-semibold">Extensive</span>
-            </div>
-            <div class="flex justify-between">
-              <span>API Required:</span>
-              <span class="text-yellow-500 font-semibold">Yes</span>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Gemini -->
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700 text-center">
-          <div class="w-20 h-20 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <i class="fas fa-gem text-white text-2xl"></i>
-          </div>
-          <h3 class="text-2xl font-bold mb-4">Gemini</h3>
-          <p class="text-gray-600 dark:text-gray-400 mb-6">Google's advanced AI with multimodal capabilities</p>
-          <div class="space-y-2 text-sm">
-            <div class="flex justify-between">
-              <span>Multimodal:</span>
-              <span class="text-green-500 font-semibold">Yes</span>
-            </div>
-            <div class="flex justify-between">
-              <span>Reasoning:</span>
-              <span class="text-green-500 font-semibold">Advanced</span>
-            </div>
-            <div class="flex justify-between">
-              <span>API Required:</span>
-              <span class="text-yellow-500 font-semibold">Yes</span>
-            </div>
-          </div>
+          <p class="text-gray-600 dark:text-gray-400">Speak naturally with real-time speech-to-text conversion for
+            hands-free interaction.</p>
         </div>
       </div>
     </div>
@@ -287,21 +460,21 @@
         <div>
           <h2 class="text-4xl font-bold mb-6 gradient-text">About Neuro-Core</h2>
           <p class="text-lg text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-            Neuro-Core is an advanced AI assistant built with Flask and LangChain, designed to provide 
-            intelligent, memory-enabled conversations with support for multiple AI models.
+            Neuro-Core is an advanced AI assistant with user-specific session management, per-chat memory isolation,
+            and support for multiple AI models. Built for privacy, scalability, and intelligent conversations.
           </p>
           <div class="space-y-4">
             <div class="flex items-center space-x-3">
               <i class="fas fa-check-circle text-green-500"></i>
-              <span>Open source and customizable</span>
+              <span>User-specific session isolation</span>
             </div>
             <div class="flex items-center space-x-3">
               <i class="fas fa-check-circle text-green-500"></i>
-              <span>Privacy-focused design</span>
+              <span>Per-chat memory contexts</span>
             </div>
             <div class="flex items-center space-x-3">
               <i class="fas fa-check-circle text-green-500"></i>
-              <span>Multi-model AI support</span>
+              <span>Redis + filesystem sessions</span>
             </div>
             <div class="flex items-center space-x-3">
               <i class="fas fa-check-circle text-green-500"></i>
@@ -309,17 +482,17 @@
             </div>
           </div>
         </div>
-        
+
         <div class="relative">
           <div class="bg-gradient-to-r from-primary to-secondary rounded-3xl p-8 text-white shadow-2xl animate-float">
             <div class="text-center">
               <i class="fas fa-code text-6xl mb-6 opacity-80"></i>
               <h3 class="text-2xl font-bold mb-4">Built with Modern Tech</h3>
               <div class="grid grid-cols-2 gap-4 text-sm">
-                <div>Flask</div>
-                <div>LangChain</div>
+                <div>Flask-Session</div>
+                <div>Redis</div>
+                <div>Ollama</div>
                 <div>TailwindCSS</div>
-                <div>JavaScript</div>
               </div>
             </div>
           </div>
@@ -334,13 +507,14 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
         <div class="col-span-1 md:col-span-2">
           <div class="flex items-center space-x-3 mb-4">
-            <div class="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center">
+            <div
+              class="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-xl flex items-center justify-center">
               <i class="fas fa-brain text-white"></i>
             </div>
             <h3 class="text-xl font-bold gradient-text">Neuro-Core</h3>
           </div>
           <p class="text-gray-400 mb-4 max-w-md">
-            Advanced AI assistant with memory, file processing, and multi-model support for intelligent conversations.
+            Advanced AI assistant with user-specific sessions, per-chat memory isolation, and multi-model support.
           </p>
           <div class="flex space-x-4">
             <a href="https://github.com/vishaldeshmukh2k6" class="text-gray-400 hover:text-white transition-colors">
@@ -354,49 +528,70 @@
             </a>
           </div>
         </div>
-        
+
         <div>
-          <h4 class="font-semibold mb-4">Features</h4>
+          <h4 class="font-semibold mb-4">Session Features</h4>
           <ul class="space-y-2 text-gray-400">
-            <li><a href="#" class="hover:text-white transition-colors">Smart Memory</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">File Processing</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Voice Input</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">API Integration</a></li>
+            <li>User Isolation</li>
+            <li>Per-Chat Memory</li>
+            <li>Session Persistence</li>
+            <li>Chat Switching</li>
           </ul>
         </div>
-        
+
         <div>
-          <h4 class="font-semibold mb-4">Resources</h4>
+          <h4 class="font-semibold mb-4">Core Features</h4>
           <ul class="space-y-2 text-gray-400">
-            <li><a href="#" class="hover:text-white transition-colors">Documentation</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">API Reference</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">Support</a></li>
-            <li><a href="#" class="hover:text-white transition-colors">GitHub</a></li>
+            <li>Smart Memory</li>
+            <li>File Processing</li>
+            <li>Voice Input</li>
+            <li>API Integration</li>
           </ul>
         </div>
       </div>
-      
+
       <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-        <p>&copy; 2024 Neuro-Core AI. Made with ❤️ by Vishal Deshmukh</p>
+        <p>&copy; 2024 Neuro-Core AI. Made with ❤️ by <a href="https://github.com/vishaldeshmukh2k6"
+            class="text-primary hover:text-secondary transition-colors">Vishal Deshmukh</a></p>
       </div>
     </div>
   </footer>
 
+  <!-- Particles.js for interactive background -->
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
   <script>
+    // Initialize Particles
+    particlesJS('particles-js', {
+      particles: {
+        number: { value: 80, density: { enable: true, value_area: 800 } },
+        color: { value: '#4f46e5' },
+        shape: { type: 'circle' },
+        opacity: { value: 0.5, random: false },
+        size: { value: 3, random: true },
+        line_linked: { enable: true, distance: 150, color: '#4f46e5', opacity: 0.4, width: 1 },
+        move: { enable: true, speed: 2, direction: 'none', random: false, straight: false, out_mode: 'out', bounce: false }
+      },
+      interactivity: {
+        detect_on: 'canvas',
+        events: { onhover: { enable: true, mode: 'grab' }, onclick: { enable: true, mode: 'push' }, resize: true },
+        modes: { grab: { distance: 140, line_linked: { opacity: 1 } }, push: { particles_nb: 4 } }
+      },
+      retina_detect: true
+    });
+
     // Theme toggle functionality
     const themeToggle = document.getElementById('themeToggle');
     const html = document.documentElement;
-    
-    // Check for saved theme preference or default to light mode
+
     const currentTheme = localStorage.getItem('theme') || 'light';
     html.classList.toggle('dark', currentTheme === 'dark');
-    
+
     themeToggle.addEventListener('click', () => {
       html.classList.toggle('dark');
       const newTheme = html.classList.contains('dark') ? 'dark' : 'light';
       localStorage.setItem('theme', newTheme);
     });
-    
+
     // Smooth scrolling for navigation links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function (e) {
@@ -410,6 +605,19 @@
         }
       });
     });
+
+    // Logout function
+    async function logout() {
+      if (confirm('Are you sure you want to logout?')) {
+        try {
+          await fetch('/auth/logout', { method: 'POST' });
+          window.location.reload();
+        } catch (error) {
+          console.error('Logout failed:', error);
+        }
+      }
+    }
   </script>
 </body>
+
 </html>

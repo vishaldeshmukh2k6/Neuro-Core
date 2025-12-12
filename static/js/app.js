@@ -1,5 +1,5 @@
 // Enhanced DOM element selection
-const messages = document.getElementById('messagesContainer');
+const messages = document.getElementById('chatMessages'); // Corrected to point to the inner wrapper
 const promptEl = document.getElementById('prompt');
 const streamBtn = document.getElementById('streamBtn');
 const stopBtn = document.getElementById('stopBtn');
@@ -38,6 +38,8 @@ let mediaRecorder = null;
 let audioChunks = [];
 let isRecording = false;
 let currentStreamController = null;
+let activeChatId = null;
+let userChats = [];
 
 // Performance monitoring
 const performanceMetrics = {
@@ -47,6 +49,240 @@ const performanceMetrics = {
 };
 
 console.log('🚀 Neuro-Core AI Assistant initialized with advanced features');
+
+// Chat management functions
+function loadUserChats() {
+  fetch('/chats')
+    .then(response => response.json())
+    .then(data => {
+      console.log('Loaded chats:', data);
+      if (data.success) {
+        userChats = data.chats;
+        updateChatSidebar();
+      }
+    })
+    .catch(error => {
+      console.error('Error loading chats:', error);
+    });
+}
+
+function createNewChat() {
+  console.log('Resetting to new chat state...');
+
+  // Reset state
+  activeChatId = null;
+  currentChatId = null;
+
+  // Reset UI
+  const welcomeScreen = document.getElementById('welcomeScreen');
+  const chatMessages = document.getElementById('chatMessages');
+  const chatbotComingSoon = document.getElementById('chatbotComingSoon');
+
+  // Show welcome screen
+  if (welcomeScreen) {
+    welcomeScreen.style.display = 'block';
+    welcomeScreen.classList.remove('hidden');
+    welcomeScreen.style.opacity = '1';
+  }
+
+  // Hide other views
+  if (chatMessages) {
+    chatMessages.classList.add('hidden');
+    // Clear messages content so old messages don't reappear
+    chatMessages.innerHTML = '';
+  }
+
+  // Clean up any stray messages that might have been appended to the parent container due to previous bug
+  if (messagesContainer) {
+    const strayMessages = messagesContainer.querySelectorAll('.message-container');
+    strayMessages.forEach(msg => msg.remove());
+  }
+
+  if (chatbotComingSoon) chatbotComingSoon.classList.add('hidden');
+
+  // Reset input
+  if (promptEl) {
+    promptEl.value = '';
+    promptEl.focus();
+  }
+
+  // Update URL without reload
+  window.history.pushState({}, '', '/chat');
+
+  // Refresh sidebar to remove active state
+  updateChatSidebar();
+}
+
+
+
+function switchToChat(chatId) {
+  activeChatId = chatId;
+  loadChatHistory(chatId);
+  loadUserChats();
+
+  // Update URL
+  window.history.pushState({}, '', `/chat?id=${chatId}`);
+}
+
+function deleteChat(chatId) {
+  showConfirmModal('Are you sure you want to delete this chat?', () => {
+    fetch(`/chat/${chatId}`, { method: 'DELETE' })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          if (chatId === activeChatId) {
+            activeChatId = null;
+            if (messages) messages.innerHTML = '';
+            showWelcomeScreen();
+            window.history.pushState({}, '', '/');
+          }
+          loadUserChats();
+          showNotification('🗑️ Chat deleted', 'success', 1500);
+        }
+      })
+      .catch(error => {
+        console.error('Error deleting chat:', error);
+        showNotification('❌ Failed to delete chat', 'error', 2000);
+      });
+  });
+}
+
+function loadChatHistory(chatId) {
+  fetch(`/chat/${chatId}/history`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && messages) {
+        messages.innerHTML = '';
+
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const chatMessages = document.getElementById('chatMessages');
+
+        if (data.history && data.history.length > 0) {
+          if (welcomeScreen) welcomeScreen.style.display = 'none';
+          if (chatMessages) chatMessages.classList.remove('hidden');
+
+          data.history.forEach(msg => {
+            if (msg.role === 'user') {
+              addUserMessage(msg.content, msg.image_url);
+            } else {
+              addAssistantMessage(msg.content);
+            }
+          });
+        } else {
+          if (welcomeScreen) {
+            welcomeScreen.style.display = 'block';
+            welcomeScreen.style.opacity = '1';
+          }
+          if (chatMessages) chatMessages.classList.add('hidden');
+        }
+
+        scrollToBottom();
+      }
+    })
+    .catch(error => {
+      console.error('Error loading chat history:', error);
+    });
+}
+
+function formatRelativeDate(dateString) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now - date);
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    return 'Today';
+  } else if (diffDays === 1) {
+    return 'Yesterday';
+  } else if (diffDays < 7) {
+    return `${diffDays} days ago`;
+  } else {
+    return date.toLocaleDateString();
+  }
+}
+
+function updateChatSidebar() {
+  if (!sidebarHistory) return;
+
+  console.log('Updating sidebar with chats:', userChats);
+
+  sidebarHistory.innerHTML = '';
+
+  userChats.forEach(chat => {
+    const isActive = chat.id === activeChatId;
+    // Clean up title for display
+    let displayTitle = chat.name.replace(/['"]+/g, '').trim();
+    // No JS truncation needed, CSS will handle it
+
+    const dateDisplay = formatRelativeDate(chat.updated || chat.created_at || Date.now());
+
+    sidebarHistory.innerHTML += `
+      <div class="group relative p-3 rounded-lg mb-2 flex justify-between items-center transition-all duration-200 ${isActive ? 'bg-blue-50 dark:bg-blue-900/40 border border-blue-200 dark:border-blue-800' : 'hover:bg-gray-100 dark:hover:bg-gray-800 border border-transparent'}">
+        <div onclick="switchToChat('${chat.id}')" class="flex-1 cursor-pointer min-w-0 pr-2">
+          <div class="font-medium text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-colors line-clamp-2 leading-snug" title="${chat.name}">
+            ${displayTitle}
+          </div>
+          <div class="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">
+            ${dateDisplay}
+          </div>
+        </div>
+        
+        <!-- Chat Options Menu -->
+        <div class="relative">
+          <button onclick="toggleChatMenu(event, '${chat.id}')" class="opacity-0 group-hover:opacity-100 p-1.5 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 text-gray-500 dark:text-gray-400">
+            <i class="fas fa-ellipsis-v text-xs"></i>
+          </button>
+          
+          <!-- Dropdown -->
+          <div id="chat-menu-${chat.id}" class="hidden absolute right-0 top-full mt-1 w-32 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden">
+            <button onclick="renameChat('${chat.id}', '${chat.name.replace(/'/g, "\\'")}')" class="w-full text-left px-3 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
+              <i class="fas fa-edit"></i> Rename
+            </button>
+            <button onclick="shareChat('${chat.id}')" class="w-full text-left px-3 py-2 text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
+              <i class="fas fa-share-alt"></i> Share
+            </button>
+            <div class="h-px bg-gray-200 dark:bg-gray-700 my-1"></div>
+            <button onclick="deleteChat('${chat.id}')" class="w-full text-left px-3 py-2 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2">
+              <i class="fas fa-trash-alt"></i> Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+}
+
+// Chat Menu Functions
+function toggleChatMenu(event, chatId) {
+  event.stopPropagation();
+  // Close all other menus
+  document.querySelectorAll('[id^="chat-menu-"]').forEach(menu => {
+    if (menu.id !== `chat-menu-${chatId}`) {
+      menu.classList.add('hidden');
+    }
+  });
+
+  const menu = document.getElementById(`chat-menu-${chatId}`);
+  if (menu) {
+    menu.classList.toggle('hidden');
+  }
+}
+
+// Close menus when clicking outside
+document.addEventListener('click', () => {
+  document.querySelectorAll('[id^="chat-menu-"]').forEach(menu => {
+    menu.classList.add('hidden');
+  });
+});
+
+function shareChat(chatId) {
+  const url = `${window.location.origin}/chat?id=${chatId}`;
+  navigator.clipboard.writeText(url).then(() => {
+    showNotification('🔗 Link copied to clipboard', 'success', 2000);
+  }).catch(() => {
+    showNotification('❌ Failed to copy link', 'error', 2000);
+  });
+}
 
 // Enhanced theme initialization
 const savedTheme = localStorage.getItem('theme');
@@ -69,10 +305,10 @@ applyLayoutSettings();
 function toggleTheme() {
   const html = document.documentElement;
   const isDark = html.classList.contains('dark');
-  
+
   // Add transition class for smooth theme change
   html.style.transition = 'background-color 0.5s ease, color 0.5s ease';
-  
+
   if (isDark) {
     html.classList.remove('dark');
     localStorage.setItem('theme', 'light');
@@ -84,7 +320,7 @@ function toggleTheme() {
     currentTheme = 'dark';
     showNotification('🌙 Dark theme activated', 'success');
   }
-  
+
   // Remove transition after animation
   setTimeout(() => {
     html.style.transition = '';
@@ -102,7 +338,7 @@ function applyLayoutSettings() {
   if (inputContainer) {
     inputContainer.className = inputContainer.className.replace(/max-w-\w+/, layoutSettings.chatWidth);
   }
-  
+
   // Apply sidebar visibility
   if (sidebar) {
     if (layoutSettings.sidebarVisible) {
@@ -113,7 +349,7 @@ function applyLayoutSettings() {
       sidebar.classList.remove('flex');
     }
   }
-  
+
   // Update form controls
   if (chatWidth) chatWidth.value = layoutSettings.chatWidth;
   if (messageStyle) messageStyle.value = layoutSettings.messageStyle;
@@ -135,12 +371,12 @@ function showNotification(message, type = 'info', duration = 3000) {
       </button>
     </div>
   `;
-  
+
   document.body.appendChild(notification);
-  
+
   // Show notification
   setTimeout(() => notification.classList.add('show'), 100);
-  
+
   // Auto remove
   setTimeout(() => {
     notification.classList.remove('show');
@@ -197,19 +433,19 @@ modalOverlay?.addEventListener('click', closeSettingsModal);
 document.querySelectorAll('.settings-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const tabName = tab.dataset.tab;
-    
+
     // Update active tab
     document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
-    
+
     // Update content
     document.querySelectorAll('.settings-content').forEach(content => content.classList.add('hidden'));
     document.getElementById(`${tabName}-tab`)?.classList.remove('hidden');
-    
+
     // Update title
     const titles = {
       general: 'General Settings',
-      profile: 'Profile Settings', 
+      profile: 'Profile Settings',
       llm: 'AI Models',
       interface: 'Interface Settings',
       advanced: 'Advanced Settings'
@@ -230,14 +466,14 @@ saveSettingsBtn?.addEventListener('click', () => {
     autoSave: document.getElementById('autoSave')?.checked,
     soundNotif: document.getElementById('soundNotif')?.checked
   };
-  
+
   // Save to localStorage
   Object.entries(settings).forEach(([key, value]) => {
     if (value !== undefined && value !== '') {
       localStorage.setItem(key, value);
     }
   });
-  
+
   showNotification('⚙️ Settings saved successfully!', 'success');
   closeSettingsModal();
 });
@@ -265,18 +501,20 @@ if (toggleSidebar) {
     applyLayoutSettings();
     saveLayoutSettings();
     showNotification(
-      layoutSettings.sidebarVisible ? '📋 Sidebar shown' : '📋 Sidebar hidden', 
+      layoutSettings.sidebarVisible ? '📋 Sidebar shown' : '📋 Sidebar hidden',
       'success'
     );
   });
 }
+
+
 
 // Mobile menu with enhanced animation
 mobileMenuBtn?.addEventListener('click', () => {
   if (sidebar) {
     sidebar.classList.toggle('hidden');
     sidebar.classList.toggle('flex');
-    
+
     // Add slide animation for mobile
     if (!sidebar.classList.contains('hidden')) {
       sidebar.style.transform = 'translateX(-100%)';
@@ -288,17 +526,27 @@ mobileMenuBtn?.addEventListener('click', () => {
 });
 
 // Enhanced logout with confirmation
-logoutBtn?.addEventListener('click', async () => {
-  if (confirm('Are you sure you want to logout?')) {
-    try {
-      showNotification('👋 Logging out...', 'info');
-      await fetch('/auth/logout', { method: 'POST' });
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Logout failed:', error);
-      showNotification('❌ Logout failed. Please try again.', 'error');
+// Enhanced logout with confirmation
+logoutBtn?.addEventListener('click', () => {
+  showConfirmModal(
+    'Are you sure you want to logout?',
+    async () => {
+      try {
+        showNotification('👋 Logging out...', 'info');
+        await fetch('/auth/logout', { method: 'POST' });
+        window.location.href = '/';
+      } catch (error) {
+        console.error('Logout failed:', error);
+        showNotification('❌ Logout failed. Please try again.', 'error');
+      }
+    },
+    {
+      title: 'Confirm Logout',
+      confirmText: 'Logout',
+      icon: 'fas fa-sign-out-alt',
+      confirmColor: 'red'
     }
-  }
+  );
 });
 
 signupBtn?.addEventListener('click', () => {
@@ -314,14 +562,14 @@ loginBtn?.addEventListener('click', () => {
 // Load saved settings on page load
 document.addEventListener('DOMContentLoaded', () => {
   const settingsToLoad = [
-    'openaiKey', 'geminiKey', 'ollamaModel', 'profileName', 
+    'openaiKey', 'geminiKey', 'ollamaModel', 'profileName',
     'profileEmail', 'profileMobile', 'autoSave', 'soundNotif'
   ];
-  
+
   settingsToLoad.forEach(setting => {
     const element = document.getElementById(setting);
     const saved = localStorage.getItem(setting);
-    
+
     if (element && saved) {
       if (element.type === 'checkbox') {
         element.checked = saved === 'true';
@@ -339,7 +587,7 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
     promptEl?.focus();
   }
-  
+
   // Ctrl/Cmd + / to toggle sidebar
   if ((e.ctrlKey || e.metaKey) && e.key === '/') {
     e.preventDefault();
@@ -347,13 +595,13 @@ document.addEventListener('keydown', (e) => {
     applyLayoutSettings();
     saveLayoutSettings();
   }
-  
+
   // Ctrl/Cmd + Shift + S to open settings
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
     e.preventDefault();
     document.getElementById('settingsModal')?.classList.remove('hidden');
   }
-  
+
   // Escape to close settings modal
   if (e.key === 'Escape') {
     closeSettingsModal();
@@ -380,23 +628,23 @@ let lastImageUrl = null;
 fileInput?.addEventListener('change', async (e) => {
   const file = e.target.files[0];
   if (!file) return;
-  
+
   if (!isLoggedIn) {
     showNotification('❌ File upload requires login. Please sign up or login.', 'error');
     e.target.value = '';
     return;
   }
-  
+
   const fd = new FormData();
   fd.append('file', file);
   const res = await fetch('/upload', { method: 'POST', body: fd });
   const data = await res.json();
-  
+
   if (data.error) {
     showNotification(`❌ ${data.error}`, 'error');
     return;
   }
-  
+
   if (data.url) {
     lastImageUrl = window.location.origin + data.url;
     preview?.classList.remove('hidden');
@@ -442,33 +690,33 @@ function renderMarkdown(md) {
 // Enhanced message rendering with animations
 function addUserMessage(text, imageUrl) {
   if (!messages) return;
-  
+
   const messageContainer = document.createElement('div');
   messageContainer.className = 'flex gap-4 justify-end animate-slide-up message-container';
-  
+
   const messageGroup = document.createElement('div');
   messageGroup.className = 'max-w-[75%] group';
-  
+
   const bubble = document.createElement('div');
-  const bubbleClass = layoutSettings.messageStyle === 'card' 
+  const bubbleClass = layoutSettings.messageStyle === 'card'
     ? 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100'
     : layoutSettings.messageStyle === 'minimal'
-    ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-    : 'bg-gradient-to-r from-gemini-blue to-blue-600 text-white';
-  
+      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+      : 'bg-gradient-to-r from-gemini-blue to-blue-600 text-white';
+
   bubble.className = `${bubbleClass} rounded-2xl rounded-tr-md px-6 py-4 shadow-lg hover:shadow-xl transition-all duration-200 message-content`;
   bubble.innerHTML = `<div class="whitespace-pre-line text-sm leading-relaxed">${text}</div>`;
-  
+
   const timestamp = document.createElement('div');
   timestamp.className = 'text-xs text-gray-500 dark:text-gray-400 mt-2 text-right opacity-0 group-hover:opacity-100 transition-opacity';
   timestamp.innerHTML = `<i class="fas fa-clock mr-1"></i>${new Date().toLocaleTimeString()}`;
-  
+
   messageGroup.append(bubble, timestamp);
-  
+
   const avatar = document.createElement('div');
   avatar.className = 'w-10 h-10 rounded-full bg-gradient-to-r from-gemini-blue to-blue-600 flex items-center justify-center shadow-lg flex-shrink-0';
   avatar.innerHTML = '<i class="fas fa-user text-white text-sm"></i>';
-  
+
   messageContainer.append(messageGroup, avatar);
   messages.appendChild(messageContainer);
 
@@ -482,76 +730,76 @@ function addUserMessage(text, imageUrl) {
     `;
     messages.appendChild(imgContainer);
   }
-  
+
   performanceMetrics.messageCount++;
   scrollToBottom();
 }
 
 function addAssistantMessage(md) {
   if (!messages) return;
-  
+
   const messageContainer = document.createElement('div');
   messageContainer.className = 'flex gap-4 animate-slide-up message-container';
-  
+
   const avatar = document.createElement('div');
-  avatar.className = 'w-10 h-10 rounded-full bg-gradient-to-r from-gemini-green to-green-600 flex items-center justify-center shadow-lg flex-shrink-0 sparkle';
-  avatar.innerHTML = '<i class="fas fa-sparkles text-white text-sm"></i>';
-  
+  avatar.className = 'w-10 h-10 rounded-xl bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center shadow-lg flex-shrink-0 sparkle';
+  avatar.innerHTML = '<i class="fas fa-brain text-white text-sm"></i>';
+
   const messageGroup = document.createElement('div');
   messageGroup.className = 'flex-1 group';
-  
+
   const bubble = document.createElement('div');
   bubble.className = 'bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-6 py-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 message-bubble-advanced';
-  
+
   const body = renderMarkdown(md);
   body.className = 'prose dark:prose-invert max-w-none markdown text-sm leading-relaxed';
   bubble.appendChild(body);
-  
+
   const actions = document.createElement('div');
   actions.className = 'flex items-center gap-3 mt-3 opacity-0 group-hover:opacity-100 transition-opacity';
   actions.innerHTML = `
-    <button class="text-xs text-gray-500 hover:text-gemini-blue transition-colors flex items-center gap-1 micro-interaction" onclick="likeMessage(this)">
+    <button class="feedback-btn text-xs text-gray-500 hover:text-green-600 transition-colors flex items-center gap-1" data-feedback="positive">
       <i class="fas fa-thumbs-up"></i>Helpful
+    </button>
+    <button class="feedback-btn text-xs text-gray-500 hover:text-red-600 transition-colors flex items-center gap-1" data-feedback="negative">
+      <i class="fas fa-thumbs-down"></i>Not Helpful
     </button>
     <button class="text-xs text-gray-500 hover:text-gemini-blue transition-colors flex items-center gap-1 micro-interaction" onclick="copyMessage(this)">
       <i class="fas fa-copy"></i>Copy
-    </button>
-    <button class="text-xs text-gray-500 hover:text-gemini-blue transition-colors flex items-center gap-1 micro-interaction" onclick="regenerateMessage(this)">
-      <i class="fas fa-redo"></i>Regenerate
     </button>
     <span class="text-xs text-gray-400">
       <i class="fas fa-clock mr-1"></i>${new Date().toLocaleTimeString()}
     </span>
   `;
-  
+
   messageGroup.append(bubble, actions);
   messageContainer.append(avatar, messageGroup);
   messages.appendChild(messageContainer);
-  
+
   // Add completion indicator
   setTimeout(() => {
     bubble.classList.add('completion-indicator', 'complete');
   }, 500);
-  
+
   scrollToBottom();
 }
 
 function addAssistantStreamContainer() {
   if (!messages) return null;
-  
+
   const messageContainer = document.createElement('div');
   messageContainer.className = 'flex gap-4 animate-slide-up message-container';
-  
+
   const avatar = document.createElement('div');
-  avatar.className = 'w-10 h-10 rounded-full bg-gradient-to-r from-gemini-green to-green-600 flex items-center justify-center shadow-lg flex-shrink-0 sparkle';
-  avatar.innerHTML = '<i class="fas fa-sparkles text-white text-sm animate-pulse"></i>';
-  
+  avatar.className = 'w-10 h-10 rounded-xl bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center shadow-lg flex-shrink-0 sparkle';
+  avatar.innerHTML = '<i class="fas fa-brain text-white text-sm animate-pulse"></i>';
+
   const messageGroup = document.createElement('div');
   messageGroup.className = 'flex-1 group';
-  
+
   const bubble = document.createElement('div');
   bubble.className = 'bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-6 py-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 message-bubble-advanced';
-  
+
   const body = document.createElement('div');
   body.className = 'prose dark:prose-invert max-w-none markdown relative text-sm leading-relaxed';
   body.innerHTML = `
@@ -564,12 +812,12 @@ function addAssistantStreamContainer() {
       <em>AI is thinking...</em>
     </div>
   `;
-  
+
   bubble.appendChild(body);
   messageGroup.appendChild(bubble);
   messageContainer.append(avatar, messageGroup);
   messages.appendChild(messageContainer);
-  
+
   scrollToBottom();
   return body;
 }
@@ -577,62 +825,107 @@ function addAssistantStreamContainer() {
 // Enhanced send function with performance tracking
 async function send(useStream = false) {
   if (!promptEl) return;
-  
+
   const text = promptEl.value.trim();
   if (!text && !lastImageUrl) return;
-  
+
   const startTime = Date.now();
-  
+
+  // Hide welcome screen and show chat messages
+  const welcomeScreen = document.getElementById('welcomeScreen');
+  const chatMessages = document.getElementById('chatMessages');
+  if (welcomeScreen) welcomeScreen.style.display = 'none';
+  if (chatMessages) chatMessages.classList.remove('hidden');
+
   // Disable input during processing
   promptEl.disabled = true;
   streamBtn.disabled = true;
-  
+
   // Show stop button during streaming
   if (useStream) {
     streamBtn.classList.add('hidden');
     stopBtn.classList.remove('hidden');
   }
-  
-  addUserMessage(text || '(image only)', lastImageUrl);
-  
-  // Create new chat if this is the first message
-  if (!currentChatId && text) {
-    createNewChat(text);
+
+  // Create new chat if this is the first message and no active chat
+  if (!activeChatId && text) {
+    try {
+      const response = await fetch('/start_chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await response.json();
+      if (data.success) {
+        activeChatId = data.chat_id;
+        // Update URL with new chat ID
+        window.history.pushState({}, '', `/chat?id=${data.chat_id}`);
+      }
+    } catch (error) {
+      console.error('Error creating new chat:', error);
+      showNotification('❌ Failed to create new chat', 'error', 2000);
+      return;
+    }
   }
-  
+
+  // Always add user message to UI first
+  addUserMessage(text || '(image only)', lastImageUrl);
+
+  // Save user message to backend
+  if (activeChatId) {
+    await fetch(`/chat/${activeChatId}/message`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        role: 'user',
+        content: text || '(image only)',
+        image_url: lastImageUrl
+      })
+    });
+  }
+
   preview?.classList.add('hidden');
   if (preview) preview.innerHTML = '';
-  
+
   promptEl.value = '';
   showTypingIndicator();
+
+  // Simple context - just send the current message
+  let contextualMessage = text;
+  if (currentChatbot) {
+    contextualMessage = `${currentChatbot.instructions}\n\nKnowledge: ${currentChatbot.trainingData}\n\nQuestion: ${text}`;
+  }
 
   if (useStream) {
     const container = addAssistantStreamContainer();
     if (!container) return;
-    
+
     try {
       const abortController = new AbortController();
       currentStreamController = abortController;
-      
+
       const res = await fetch('/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, image_url: lastImageUrl }),
+        body: JSON.stringify({
+          message: contextualMessage,
+          image_url: lastImageUrl,
+          chatbot_id: currentChatbot?.id
+        }),
         signal: abortController.signal
       });
-      
+
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let fullResponse = '';
       let isFirstChunk = true;
-      
+
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-        
+
         const chunk = decoder.decode(value, { stream: true });
         const lines = chunk.split('\n');
-        
+
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             try {
@@ -649,16 +942,29 @@ async function send(useStream = false) {
                 scrollToBottom();
               }
               if (data.done) break;
-            } catch (e) {}
+            } catch (e) { }
           }
         }
       }
-      
+
+      // Save AI response and update chat title
+      if (activeChatId && fullResponse) {
+        await fetch(`/chat/${activeChatId}/message`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            role: 'assistant',
+            content: fullResponse
+          })
+        });
+        updateChatTitle(activeChatId, text, fullResponse);
+      }
+
       // Track performance
       const responseTime = Date.now() - startTime;
       performanceMetrics.totalResponseTime += responseTime;
       performanceMetrics.averageResponseTime = performanceMetrics.totalResponseTime / performanceMetrics.messageCount;
-      
+
     } catch (error) {
       hideTypingIndicator();
       if (error.name === 'AbortError') {
@@ -676,43 +982,56 @@ async function send(useStream = false) {
       const res = await fetch('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, image_url: lastImageUrl })
+        body: JSON.stringify({
+          message: contextualMessage,
+          image_url: lastImageUrl,
+          chatbot_id: currentChatbot?.id
+        })
       });
-      
-      hideTypingIndicator();
-      
 
-      
+      hideTypingIndicator();
+
       const data = await res.json();
-      addAssistantMessage(data.reply || 'No response received');
-      
+      const aiResponse = data.reply || 'No response received';
+      addAssistantMessage(aiResponse);
+
+      // Save AI response and update chat title
+      if (activeChatId) {
+        await fetch(`/chat/${activeChatId}/message`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            role: 'assistant',
+            content: aiResponse
+          })
+        });
+        updateChatTitle(activeChatId, text, aiResponse);
+      }
+
       // Track performance
       const responseTime = Date.now() - startTime;
       performanceMetrics.totalResponseTime += responseTime;
       performanceMetrics.averageResponseTime = performanceMetrics.totalResponseTime / performanceMetrics.messageCount;
-      
+
     } catch (error) {
       hideTypingIndicator();
       addAssistantMessage('❌ **Error**: Could not send message. Please try again.');
       showNotification('❌ Connection error. Please check your internet.', 'error');
     }
   }
-  
+
   // Re-enable input and reset buttons
   promptEl.disabled = false;
   streamBtn.disabled = false;
   streamBtn.classList.remove('hidden');
   stopBtn.classList.add('hidden');
   promptEl.focus();
-  
+
   lastImageUrl = null;
   scrollToBottom();
-  
-  // Save current chat and refresh sidebar
-  saveCurrentChat();
-  refreshSidebar();
-  
 
+  // Refresh sidebar to show updated chat
+  loadUserChats();
 }
 
 // Message action functions
@@ -737,128 +1056,81 @@ function copyMessage(button) {
   }
 }
 
-function regenerateMessage(button) {
-  showNotification('🔄 Regenerating response...', 'info', 1500);
-  // Implementation would depend on backend support
+// Feedback system
+document.addEventListener('click', (e) => {
+  if (e.target.closest('.feedback-btn')) {
+    const btn = e.target.closest('.feedback-btn');
+    const feedbackType = btn.dataset.feedback;
+    const messageContainer = btn.closest('.message-container');
+    const aiResponse = messageContainer.querySelector('.markdown').textContent;
+
+    const prevMessage = messageContainer.previousElementSibling;
+    const userInput = prevMessage ? prevMessage.querySelector('.message-content')?.textContent || '' : '';
+
+    submitFeedback(Date.now().toString(), feedbackType, userInput, aiResponse);
+
+    btn.style.color = feedbackType === 'positive' ? '#10b981' : '#ef4444';
+    showNotification(feedbackType === 'positive' ? '👍 Thanks for feedback!' : '👎 Feedback recorded', 'success', 1500);
+  }
+});
+
+function submitFeedback(messageId, type, userInput, aiResponse) {
+  fetch('/api/feedback', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      message_id: messageId,
+      type: type,
+      user_input: userInput,
+      ai_response: aiResponse
+    })
+  }).catch(error => console.error('Feedback error:', error));
 }
 
-streamBtn?.addEventListener('click', () => send(true));
 
-// Stop button functionality
-stopBtn?.addEventListener('click', () => {
-  if (currentStreamController) {
-    currentStreamController.abort();
-    showNotification('⏹️ Stopping response...', 'info', 1500);
-  }
-});
-
-promptEl?.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault();
-    send(true);
-  }
-});
 
 
 
 // Enhanced sidebar with better history management
-function refreshSidebar() {
-  if (!sidebarHistory) return;
-  
-  const items = chats.map(chat => `
-    <div class="chat-item px-3 py-3 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${currentChatId === chat.id ? 'bg-gemini-blue/10 border-l-2 border-gemini-blue' : ''}" data-id="${chat.id}">
-      <div class="flex items-center gap-2 mb-1">
-        <i class="fas fa-comment text-gemini-blue text-sm"></i>
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">${chat.name}</span>
-      </div>
-      <div class="text-xs text-gray-500 dark:text-gray-400">${new Date(chat.updated).toLocaleDateString()}</div>
-    </div>
-  `).join('');
-  
-  sidebarHistory.innerHTML = items || '<div class="text-center text-gray-500 dark:text-gray-400 text-xs py-8">No conversations yet</div>';
-  
-  // Add click handlers
-  document.querySelectorAll('.chat-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const chatId = item.dataset.id;
-      loadChat(chatId);
-    });
-  });
-}
+// This function is replaced by updateChatSidebar()
 
-function saveCurrentChat() {
-  if (!currentChatId) return;
-  
-  const chat = chats.find(c => c.id === currentChatId);
-  if (chat) {
-    // Get messages from DOM
-    const messageElements = document.querySelectorAll('#messagesContainer .message-container');
-    const messages = [];
-    
-    messageElements.forEach(el => {
-      const isUser = el.querySelector('.fa-user');
-      const content = el.querySelector('.message-content, .markdown')?.textContent || '';
-      const imageUrl = el.querySelector('img')?.src || null;
-      
-      if (isUser) {
-        messages.push({ role: 'user', content, image_url: imageUrl });
-      } else {
-        messages.push({ role: 'assistant', content });
-      }
+// Remove this function since we're using backend storage
+
+// Remove this function since we're not using local chat storage anymore
+
+// Unused loadChat function removed
+
+// Unused generateChatTitle function removed
+
+async function updateChatTitle(chatId, userMessage, aiResponse) {
+  try {
+    // Only generate title if it's a new chat or has very few messages
+    // We let the backend decide based on history length or just force it for now
+    // But to avoid spamming, let's only do it if the current title is "New Chat" 
+    // or if we want to refresh it.
+
+    // For now, let's call the generator. The backend will use the history.
+    // We can optimize by checking if we really need to update.
+
+    const response = await fetch(`/chat/${chatId}/generate_title`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
     });
-    
-    chat.messages = messages;
-    chat.updated = new Date().toISOString();
-    localStorage.setItem('chats', JSON.stringify(chats));
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        loadUserChats(); // Refresh sidebar
+      }
+    }
+  } catch (error) {
+    console.error('Error updating chat title:', error);
   }
 }
 
-function loadChat(chatId) {
-  const chat = chats.find(c => c.id === chatId);
-  if (!chat) return;
-  
-  currentChatId = chatId;
-  
-  // Update URL
-  window.history.pushState({}, '', `/chat?id=${chatId}`);
-  
-  // Render messages
-  if (messages) {
-    messages.innerHTML = '';
-    chat.messages.forEach(msg => {
-      if (msg.role === 'user') {
-        addUserMessage(msg.content, msg.image_url);
-      } else {
-        addAssistantMessage(msg.content);
-      }
-    });
-  }
-  
-  refreshSidebar();
-}
 
-function createNewChat(firstMessage = '') {
-  saveCurrentChat();
-  
-  const newChat = {
-    id: Date.now().toString(),
-    name: firstMessage ? firstMessage.slice(0, 30) + '...' : 'New Chat',
-    messages: [],
-    created: new Date().toISOString(),
-    updated: new Date().toISOString()
-  };
-  
-  chats.unshift(newChat);
-  currentChatId = newChat.id;
-  
-  // Update URL
-  window.history.pushState({}, '', `/chat?id=${newChat.id}`);
-  
-  localStorage.setItem('chats', JSON.stringify(chats));
-  
-  if (messages) messages.innerHTML = '';
-  refreshSidebar();
-}
+
+// Duplicate createNewChat function removed
 
 function scrollToMessage(index) {
   const messageElements = document.querySelectorAll('#messagesContainer .message-container');
@@ -896,7 +1168,7 @@ let progress = 0;
 function updateLoadingProgress() {
   const statusEl = document.getElementById('loadingStatus');
   const progressBar = document.getElementById('progressBar');
-  
+
   if (statusEl && currentMessageIndex < loadingMessages.length) {
     statusEl.textContent = loadingMessages[currentMessageIndex];
     statusEl.style.opacity = '0';
@@ -905,16 +1177,16 @@ function updateLoadingProgress() {
     }, 100);
     currentMessageIndex++;
   }
-  
+
   // More realistic progress increments
   const increment = currentMessageIndex < 3 ? Math.random() * 15 + 10 : Math.random() * 25 + 15;
   progress += increment;
   if (progress > 100) progress = 100;
-  
+
   if (progressBar) {
     progressBar.style.width = progress + '%';
   }
-  
+
   if (progress < 100 && currentMessageIndex < loadingMessages.length) {
     setTimeout(updateLoadingProgress, 600 + Math.random() * 400);
   } else if (progress >= 100) {
@@ -934,15 +1206,15 @@ async function startRecording() {
   if (!recognition) {
     recognition = initSpeechRecognition();
   }
-  
+
   if (!recognition) {
     showNotification('❌ Speech recognition not supported', 'error');
     return;
   }
-  
+
   try {
     isRecording = true;
-    
+
     recognition.onresult = (event) => {
       let transcript = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -952,26 +1224,26 @@ async function startRecording() {
         promptEl.value = transcript;
       }
     };
-    
+
     recognition.onerror = (event) => {
       console.error('Speech error:', event.error);
       stopRecording();
     };
-    
+
     recognition.onend = () => {
       if (isRecording) {
         stopRecording();
       }
     };
-    
+
     recognition.start();
-    
+
     // Update UI
     const icon = voiceBtn.querySelector('i');
     icon.className = 'fas fa-stop text-red-500 animate-pulse';
     voiceBtn.title = 'Stop recording';
     showNotification('🎤 Speak now...', 'info');
-    
+
   } catch (error) {
     console.error('Error starting recognition:', error);
     showNotification('❌ Could not start voice input', 'error');
@@ -983,7 +1255,7 @@ function stopRecording() {
   if (recognition && isRecording) {
     recognition.stop();
     isRecording = false;
-    
+
     // Update UI
     const icon = voiceBtn.querySelector('i');
     icon.className = 'fas fa-microphone text-gray-400';
@@ -998,14 +1270,14 @@ function initSpeechRecognition() {
   if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
     return null;
   }
-  
+
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   recognition = new SpeechRecognition();
-  
+
   recognition.continuous = true;
   recognition.interimResults = true;
   recognition.lang = 'en-US';
-  
+
   return recognition;
 }
 
@@ -1049,10 +1321,10 @@ if (aiModelSelect) {
   const savedModel = localStorage.getItem('selectedAIModel') || 'ollama';
   aiModelSelect.value = savedModel;
   updateCurrentModelDisplay(savedModel);
-  
+
   aiModelSelect.addEventListener('change', async (e) => {
     const selectedModel = e.target.value;
-    
+
     try {
       // Send model selection to backend
       const response = await fetch('/set-ai-model', {
@@ -1060,7 +1332,7 @@ if (aiModelSelect) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: selectedModel })
       });
-      
+
       if (response.ok) {
         localStorage.setItem('selectedAIModel', selectedModel);
         updateCurrentModelDisplay(selectedModel);
@@ -1100,7 +1372,7 @@ async function checkAvailableModels() {
   try {
     const response = await fetch('/available-models');
     const data = await response.json();
-    
+
     if (aiModelSelect && data.models) {
       // Update select options based on available models
       const options = aiModelSelect.querySelectorAll('option');
@@ -1111,7 +1383,7 @@ async function checkAvailableModels() {
           option.textContent += ' (Not Available)';
         }
       });
-      
+
       // If current selection is not available, switch to first available
       const currentModel = localStorage.getItem('selectedAIModel') || 'ollama';
       if (!data.models.includes(currentModel) && data.models.length > 0) {
@@ -1137,28 +1409,28 @@ window.addEventListener('load', () => {
     progress = 100;
     const progressBar = document.getElementById('progressBar');
     const statusEl = document.getElementById('loadingStatus');
-    
+
     if (progressBar) {
       progressBar.style.width = '100%';
       progressBar.style.background = 'linear-gradient(90deg, var(--gemini-green), var(--gemini-blue))';
     }
     if (statusEl) statusEl.textContent = 'Ready to assist! 🚀';
-    
+
     // Add completion sound effect (optional)
     // playNotificationSound();
-    
+
     setTimeout(() => {
       const loadingScreen = document.getElementById('loadingScreen');
       if (loadingScreen) {
         loadingScreen.style.opacity = '0';
         loadingScreen.style.transform = 'scale(1.1)';
         loadingScreen.style.transition = 'opacity 1s ease, transform 1s ease';
-        
+
         setTimeout(() => {
           loadingScreen.style.display = 'none';
           // Show welcome notification
           showNotification('🎉 Welcome to Neuro-Core AI! Ready to help you.', 'success', 4000);
-          
+
           // Focus on input
           if (promptEl) {
             promptEl.focus();
@@ -1191,7 +1463,7 @@ function initializeRevealAnimations() {
       }
     });
   });
-  
+
   elements.forEach(el => observer.observe(el));
 }
 
@@ -1200,14 +1472,16 @@ let chatbots = JSON.parse(localStorage.getItem('chatbots') || '[]');
 let currentChatbot = null;
 
 // Chat management
-let chats = JSON.parse(localStorage.getItem('chats') || '[]');
+let chats = [];
 let currentChatId = null;
+
+// This function is replaced by loadUserChats()
+
+// These functions are now handled by the session manager backend
 
 // New chat button
 document.getElementById('newChatBtn')?.addEventListener('click', () => {
-  currentChatbot = null;
   createNewChat();
-  showNotification('🆕 New chat started', 'success', 1500);
 });
 
 // New chatbot modal
@@ -1225,114 +1499,597 @@ function closeChatbotModal() {
 }
 
 newChatbotBtn?.addEventListener('click', () => {
-  newChatbotModal?.classList.remove('hidden');
+  // Hide other views
+  document.getElementById('welcomeScreen')?.classList.add('hidden');
+  document.getElementById('chatMessages')?.classList.add('hidden');
+
+  // Show coming soon
+  const comingSoon = document.getElementById('chatbotComingSoon');
+  if (comingSoon) {
+    comingSoon.classList.remove('hidden');
+  }
+
+  // Update URL to reflect state
+  history.pushState({ page: 'chatbot-coming-soon' }, '', '#chatbot-coming-soon');
+});
+
+// Handle back button to restore view
+window.addEventListener('popstate', (event) => {
+  if (!event.state) {
+    window.location.reload();
+  }
 });
 
 chatbotModalOverlay?.addEventListener('click', closeChatbotModal);
 cancelChatbotBtn?.addEventListener('click', closeChatbotModal);
 
+// Enhanced file handling
+let uploadedFiles = [];
+
+document.getElementById('chatbotFiles')?.addEventListener('change', (e) => {
+  const files = Array.from(e.target.files);
+  files.forEach(file => {
+    if (!uploadedFiles.find(f => f.name === file.name)) {
+      uploadedFiles.push({
+        file,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        content: null
+      });
+    }
+  });
+  updateFilesList();
+});
+
+function updateFilesList() {
+  const filesList = document.getElementById('uploadedFilesList');
+  const fileCount = document.getElementById('fileCount');
+
+  if (!filesList || !fileCount) return;
+
+  fileCount.textContent = `${uploadedFiles.length} files`;
+
+  if (uploadedFiles.length === 0) {
+    filesList.innerHTML = `
+      <div class="text-center text-gray-500 dark:text-gray-400 text-sm py-8">
+        <i class="fas fa-folder-open text-2xl mb-2"></i>
+        <p>No files uploaded yet</p>
+      </div>
+    `;
+    return;
+  }
+
+  filesList.innerHTML = uploadedFiles.map((fileObj, index) => `
+    <div class="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600">
+      <div class="flex items-center gap-2 flex-1 min-w-0">
+        <i class="fas fa-file-alt text-gemini-blue text-sm"></i>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">${fileObj.name}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">${(fileObj.size / 1024).toFixed(1)} KB</p>
+        </div>
+      </div>
+      <button onclick="removeFile(${index})" class="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
+        <i class="fas fa-times text-red-500 text-xs"></i>
+      </button>
+    </div>
+  `).join('');
+}
+
+function removeFile(index) {
+  uploadedFiles.splice(index, 1);
+  updateFilesList();
+}
+
 createChatbotBtn?.addEventListener('click', async () => {
   const name = document.getElementById('chatbotName')?.value.trim();
-  const knowledge = document.getElementById('chatbotKnowledge')?.value.trim();
-  const files = document.getElementById('chatbotFiles')?.files;
-  
+  const description = document.getElementById('chatbotDescription')?.value.trim();
+  const instructions = document.getElementById('chatbotInstructions')?.value.trim();
+
   if (!name) {
     showNotification('❌ Please enter a chatbot name', 'error');
     return;
   }
-  
-  let fileContent = '';
-  
+
+  if (!instructions) {
+    showNotification('❌ Please provide base instructions', 'error');
+    return;
+  }
+
+  // Show training progress
+  const createBtn = document.getElementById('createChatbotBtn');
+  const originalText = createBtn.innerHTML;
+  createBtn.innerHTML = '<i class="fas fa-spinner animate-spin"></i> Training...';
+  createBtn.disabled = true;
+
+  let trainingData = '';
+
   // Process uploaded files
-  if (files && files.length > 0) {
-    for (let file of files) {
+  if (uploadedFiles.length > 0) {
+    showNotification('📚 Processing training files...', 'info', 2000);
+
+    for (let fileObj of uploadedFiles) {
       try {
-        const text = await file.text();
-        fileContent += `\n\n--- ${file.name} ---\n${text}`;
+        const text = await fileObj.file.text();
+        trainingData += `\n\n=== ${fileObj.name} ===\n${text}`;
       } catch (error) {
         console.error('Error reading file:', error);
+        showNotification(`❌ Error reading ${fileObj.name}`, 'error');
       }
     }
   }
-  
-  const combinedKnowledge = knowledge + fileContent;
-  
-  if (!combinedKnowledge.trim()) {
-    showNotification('❌ Please provide knowledge base or upload files', 'error');
-    return;
-  }
-  
+
   const newChatbot = {
     id: Date.now().toString(),
     name,
-    knowledge: combinedKnowledge,
-    created: new Date().toISOString()
+    description: description || 'Personal AI Assistant',
+    instructions,
+    trainingData,
+    fileCount: uploadedFiles.length,
+    created: new Date().toISOString(),
+    lastTrained: new Date().toISOString()
   };
-  
-  chatbots.push(newChatbot);
-  localStorage.setItem('chatbots', JSON.stringify(chatbots));
-  
-  renderChatbots();
-  closeChatbotModal();
-  showNotification(`🤖 Chatbot "${name}" created successfully!`, 'success');
+
+  // Simulate training process
+  setTimeout(() => {
+    chatbots.push(newChatbot);
+    localStorage.setItem('chatbots', JSON.stringify(chatbots));
+
+    renderChatbots();
+    closeChatbotModal();
+
+    // Reset form
+    uploadedFiles = [];
+    document.getElementById('chatbotName').value = '';
+    document.getElementById('chatbotDescription').value = '';
+    document.getElementById('chatbotInstructions').value = '';
+    updateFilesList();
+
+    createBtn.innerHTML = originalText;
+    createBtn.disabled = false;
+
+    showNotification(`🎉 Personal AI "${name}" trained successfully with ${newChatbot.fileCount} files!`, 'success', 4000);
+  }, 2000);
 });
+
+function showConfirmModal(message, onConfirm, options = {}) {
+  const modal = document.getElementById('confirmModal');
+  const messageEl = document.getElementById('confirmMessage');
+  const titleEl = document.getElementById('confirmTitle');
+  const btnTextEl = document.getElementById('confirmBtnText');
+  const btnIconEl = document.getElementById('confirmBtnIcon');
+  const cancelBtn = document.getElementById('confirmCancel');
+  const deleteBtn = document.getElementById('confirmDelete'); // This is the confirm button
+
+  messageEl.textContent = message;
+  titleEl.textContent = options.title || 'Confirm Action';
+  btnTextEl.textContent = options.confirmText || 'Delete';
+
+  if (options.icon) {
+    btnIconEl.innerHTML = `<i class="${options.icon} mr-2"></i>`;
+  } else {
+    btnIconEl.innerHTML = '<i class="fas fa-trash mr-2"></i>';
+  }
+
+  // Update button color if needed (default is red)
+  if (options.confirmColor === 'blue') {
+    deleteBtn.className = 'px-6 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl';
+  } else {
+    // Reset to red
+    deleteBtn.className = 'px-6 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl';
+  }
+
+  modal.classList.remove('hidden');
+
+  const handleCancel = () => {
+    modal.classList.add('hidden');
+    cancelBtn.removeEventListener('click', handleCancel);
+    deleteBtn.removeEventListener('click', handleConfirm);
+  };
+
+  const handleConfirm = () => {
+    modal.classList.add('hidden');
+    onConfirm();
+    cancelBtn.removeEventListener('click', handleCancel);
+    deleteBtn.removeEventListener('click', handleConfirm);
+  };
+
+  cancelBtn.addEventListener('click', handleCancel);
+  deleteBtn.addEventListener('click', handleConfirm);
+}
+
+
 
 function renderChatbots() {
   const chatbotsList = document.getElementById('chatbotsList');
   if (!chatbotsList) return;
-  
+
   chatbotsList.innerHTML = chatbots.map(bot => `
-    <div class="chatbot-item p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors" data-id="${bot.id}">
-      <div class="flex items-center gap-2">
-        <i class="fas fa-robot text-gemini-blue text-sm"></i>
-        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">${bot.name}</span>
+    <div class="chatbot-item p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors group" data-id="${bot.id}">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 flex-1 min-w-0">
+          <i class="fas fa-robot text-gemini-blue text-sm"></i>
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">${bot.name}</span>
+        </div>
+        <button class="delete-bot opacity-0 group-hover:opacity-100 w-7 h-7 rounded-lg bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-200 flex items-center justify-center" data-id="${bot.id}" title="Delete bot">
+          <i class="fas fa-trash text-xs"></i>
+        </button>
       </div>
       <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">${new Date(bot.created).toLocaleDateString()}</div>
     </div>
   `).join('');
-  
+
   // Add click handlers
   document.querySelectorAll('.chatbot-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const botId = item.dataset.id;
-      const bot = chatbots.find(b => b.id === botId);
-      if (bot) {
-        currentChatbot = bot;
-        if (messages) messages.innerHTML = '';
-        showNotification(`🤖 Switched to ${bot.name}`, 'success', 1500);
+    item.addEventListener('click', (e) => {
+      if (!e.target.closest('.delete-bot')) {
+        const botId = item.dataset.id;
+        const bot = chatbots.find(b => b.id === botId);
+        if (bot) {
+          currentChatbot = bot;
+          if (messages) messages.innerHTML = '';
+          showNotification(`🤖 Switched to ${bot.name}`, 'success', 1500);
+        }
       }
+    });
+  });
+
+  // Add delete handlers
+  document.querySelectorAll('.delete-bot').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const botId = btn.dataset.id;
+      deleteChatbot(botId);
     });
   });
 }
 
+function deleteChatbot(botId) {
+  const bot = chatbots.find(b => b.id === botId);
+  showConfirmModal(`Are you sure you want to delete "${bot?.name}" chatbot?`, () => {
+    chatbots = chatbots.filter(b => b.id !== botId);
+    localStorage.setItem('chatbots', JSON.stringify(chatbots));
+    renderChatbots();
+    showNotification('🗑️ Chatbot deleted', 'success', 1500);
+  });
+}
+
+// Welcome Screen Management
+function hideWelcomeScreen() {
+  const welcomeScreen = document.getElementById('welcomeScreen');
+  if (welcomeScreen && !welcomeScreen.style.display.includes('none')) {
+    welcomeScreen.style.opacity = '0';
+    welcomeScreen.style.transform = 'translateY(-20px)';
+    welcomeScreen.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+
+    setTimeout(() => {
+      welcomeScreen.style.display = 'none';
+    }, 500);
+  }
+}
+
+function showWelcomeScreen() {
+  const welcomeScreen = document.getElementById('welcomeScreen');
+  if (welcomeScreen) {
+    welcomeScreen.style.display = 'block';
+    welcomeScreen.style.opacity = '0';
+    welcomeScreen.style.transform = 'translateY(20px)';
+
+    setTimeout(() => {
+      welcomeScreen.style.opacity = '1';
+      welcomeScreen.style.transform = 'translateY(0)';
+    }, 10);
+  }
+}
+
+function shouldShowWelcomeScreen() {
+  // Check if there are any message containers (excluding welcome screen)
+  const messageContainers = document.querySelectorAll('#messagesContainer .message-container');
+  return messageContainers.length === 0;
+}
+
+// Enhanced send function with welcome screen handling
+function enhancedSend(useStream = false) {
+  // Hide welcome screen and show chat messages when first message is sent
+  const welcomeScreen = document.getElementById('welcomeScreen');
+  const chatMessages = document.getElementById('chatMessages');
+
+  if (welcomeScreen && !welcomeScreen.style.display.includes('none')) {
+    hideWelcomeScreen();
+
+    if (chatMessages) {
+      chatMessages.classList.remove('hidden');
+    }
+
+    setTimeout(() => {
+      showNotification('🚀 Chat started! Welcome to Neuro-Core AI', 'success', 3000);
+    }, 300);
+  } else if (chatMessages && chatMessages.classList.contains('hidden')) {
+    // Ensure chat messages are visible even if welcome screen was already hidden
+    chatMessages.classList.remove('hidden');
+  }
+
+  // Call the original send function
+  send(useStream);
+}
+
+// Welcome screen feature demonstrations
+function initializeWelcomeFeatures() {
+  // Feature card hover effects with sound (optional)
+  document.querySelectorAll('.feature-card').forEach((card, index) => {
+    card.addEventListener('mouseenter', () => {
+      // Add subtle animation delay based on index
+      card.style.animationDelay = `${index * 0.1}s`;
+      card.classList.add('animate-pulse');
+
+      setTimeout(() => {
+        card.classList.remove('animate-pulse');
+      }, 600);
+    });
+  });
+
+  // Quick action buttons
+  const uploadAction = document.querySelector('.quick-action[data-action="upload"]');
+  const voiceAction = document.querySelector('.quick-action[data-action="voice"]');
+
+  if (uploadAction) {
+    uploadAction.addEventListener('click', () => {
+      document.getElementById('fileInput')?.click();
+      showNotification('📁 File upload dialog opened', 'info', 2000);
+    });
+  }
+
+  if (voiceAction) {
+    voiceAction.addEventListener('click', () => {
+      document.getElementById('voiceBtn')?.click();
+      showNotification('🎤 Voice input activated', 'info', 2000);
+    });
+  }
+
+  // Keyboard shortcuts demonstration
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'k') {
+      e.preventDefault();
+      promptEl?.focus();
+      showNotification('⌨️ Input focused via keyboard shortcut', 'success', 2000);
+    }
+  });
+}
+
+// Animated counter for features
+function animateFeatureNumbers() {
+  const features = [
+    { element: '.feature-count-1', target: 6, suffix: '+' },
+    { element: '.feature-count-2', target: 100, suffix: '%' },
+    { element: '.feature-count-3', target: 24, suffix: '/7' }
+  ];
+
+  features.forEach(feature => {
+    const element = document.querySelector(feature.element);
+    if (element) {
+      let current = 0;
+      const increment = feature.target / 30;
+      const timer = setInterval(() => {
+        current += increment;
+        if (current >= feature.target) {
+          current = feature.target;
+          clearInterval(timer);
+        }
+        element.textContent = Math.floor(current) + feature.suffix;
+      }, 50);
+    }
+  });
+}
+
+// Welcome screen tutorial mode
+function startWelcomeTutorial() {
+  const steps = [
+    {
+      element: '#prompt',
+      message: 'Type your message here or click an example below',
+      position: 'top'
+    },
+    {
+      element: '#fileInput',
+      message: 'Upload files for analysis (PDFs, images, text)',
+      position: 'bottom'
+    },
+    {
+      element: '#voiceBtn',
+      message: 'Use voice input for hands-free interaction',
+      position: 'bottom'
+    },
+    {
+      element: '#aiModelSelect',
+      message: 'Choose your preferred AI model',
+      position: 'top'
+    }
+  ];
+
+  let currentStep = 0;
+
+  function showStep(step) {
+    const element = document.querySelector(step.element);
+    if (element) {
+      // Highlight element
+      element.style.boxShadow = '0 0 0 3px rgba(66, 133, 244, 0.5)';
+      element.style.transition = 'box-shadow 0.3s ease';
+
+      // Show tooltip
+      showNotification(step.message, 'info', 3000);
+
+      // Remove highlight after delay
+      setTimeout(() => {
+        element.style.boxShadow = '';
+      }, 3000);
+    }
+  }
+
+  // Start tutorial
+  const tutorialInterval = setInterval(() => {
+    if (currentStep < steps.length) {
+      showStep(steps[currentStep]);
+      currentStep++;
+    } else {
+      clearInterval(tutorialInterval);
+      showNotification('✨ Tutorial complete! Start chatting to explore more features.', 'success', 4000);
+    }
+  }, 4000);
+}
+
 // Initialize everything when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('DOM loaded, initializing...');
+
   initializeRevealAnimations();
   renderChatbots();
-  
+  initializeWelcomeFeatures();
+
+  // Clear sidebar first
+  if (sidebarHistory) {
+    sidebarHistory.innerHTML = '';
+  }
+
+  // Load user chats
+  loadUserChats();
+
   // Load chat from URL if present
   const urlParams = new URLSearchParams(window.location.search);
   const chatId = urlParams.get('id');
-  
-  if (chatId && chats.find(c => c.id === chatId)) {
-    loadChat(chatId);
+
+  if (chatId) {
+    switchToChat(chatId);
+  } else {
+    // Always show welcome screen by default
+    showWelcomeScreen();
+
+    // Start tutorial after a delay for new users (guests only)
+    setTimeout(() => {
+      if (!isLoggedIn && document.getElementById('welcomeScreen')?.style.display !== 'none') {
+        startWelcomeTutorial();
+      }
+    }, 3000);
   }
-  
-  refreshSidebar();
+
   console.log('🎨 Advanced Gemini-style UI initialized successfully!');
-  
+
   // Initialize example prompts after DOM is loaded
   setTimeout(() => {
-    document.querySelectorAll('.example-prompt').forEach(button => {
+    document.querySelectorAll('.example-prompt').forEach((button, index) => {
+      // Add staggered animation
+      button.style.animationDelay = `${index * 0.1}s`;
+      button.classList.add('welcome-slide-in');
+
       button.addEventListener('click', () => {
         const promptText = button.querySelector('span').textContent;
         if (promptEl) {
           promptEl.value = promptText;
           promptEl.focus();
           showNotification('💡 Example prompt loaded', 'success', 1500);
+
+          // Auto-hide welcome screen after loading prompt
+          setTimeout(() => {
+            hideWelcomeScreen();
+          }, 1000);
         }
       });
     });
+
+    // Animate feature numbers
+    animateFeatureNumbers();
   }, 100);
+
+  // Set up send button and enter key handlers
+  if (streamBtn) {
+    streamBtn.addEventListener('click', () => enhancedSend(true));
+  }
+
+  if (promptEl) {
+    promptEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        enhancedSend(true);
+      }
+    });
+  }
+
+  // Stop button functionality
+  if (stopBtn) {
+    stopBtn.addEventListener('click', () => {
+      if (currentStreamController) {
+        currentStreamController.abort();
+        showNotification('⏹️ Stopping response...', 'info', 1500);
+      }
+    });
+  }
 });
 
+// User Menu Dropdown
+const userMenuBtn = document.getElementById('userMenuBtn');
+const userDropdown = document.getElementById('userDropdown');
+
+if (userMenuBtn && userDropdown) {
+  userMenuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    userDropdown.classList.toggle('hidden');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!userMenuBtn.contains(e.target) && !userDropdown.contains(e.target)) {
+      userDropdown.classList.add('hidden');
+    }
+  });
+}
+// Rename Chat Modal Logic
+let currentRenameChatId = null;
+
+function openRenameModal(chatId, currentName) {
+  currentRenameChatId = chatId;
+  const modal = document.getElementById('renameChatModal');
+  const input = document.getElementById('renameChatInput');
+
+  if (modal && input) {
+    input.value = currentName;
+    modal.classList.remove('hidden');
+    input.focus();
+  }
+}
+
+function closeRenameModal() {
+  const modal = document.getElementById('renameChatModal');
+  if (modal) {
+    modal.classList.add('hidden');
+  }
+  currentRenameChatId = null;
+}
+
+function confirmRenameChat() {
+  const input = document.getElementById('renameChatInput');
+  if (!input || !currentRenameChatId) return;
+
+  const newName = input.value.trim();
+  if (newName !== '') {
+    fetch(`/chat/${currentRenameChatId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newName })
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          loadUserChats();
+          showNotification('✏️ Chat renamed', 'success', 2000);
+          closeRenameModal();
+        }
+      })
+      .catch(error => {
+        console.error('Error renaming chat:', error);
+        showNotification('❌ Failed to rename chat', 'error', 2000);
+      });
+  }
+}
+
+// Update renameChat to use modal
+function renameChat(chatId, currentName) {
+  openRenameModal(chatId, currentName);
+}
