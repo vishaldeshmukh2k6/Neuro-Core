@@ -21,6 +21,8 @@ def get_user_id():
             
     return session['user_id']
 
+
+
 def validate_chat_ownership(chat_id, user_id):
     """Validate that user owns the chat"""
     chat = Chat.query.filter_by(id=chat_id, user_id=user_id).first()
@@ -114,19 +116,24 @@ def get_chat_history(chat_id):
 
 @chat_api_bp.route('/chats', methods=['GET'])
 def get_user_chats():
-    """Get all chats for current user"""
+    """Get all chats for current user (excluding datetime-named chats)"""
     user_id = get_user_id()
     
     chats = Chat.query.filter_by(user_id=user_id).order_by(Chat.updated.desc()).all()
     
     chat_list = []
     for chat in chats:
-        chat_list.append({
-            'id': chat.id,
-            'name': chat.name,
-            'created': chat.created.isoformat(),
-            'updated': chat.updated.isoformat()
-        })
+        # Hide chats with datetime pattern names (e.g., "Chat 12/14 11:59")
+        import re
+        datetime_pattern = r'^Chat \d{1,2}/\d{1,2} \d{1,2}:\d{2}$'
+        
+        if not re.match(datetime_pattern, chat.name):
+            chat_list.append({
+                'id': chat.id,
+                'name': chat.name,
+                'created': chat.created.isoformat(),
+                'updated': chat.updated.isoformat()
+            })
     
     return jsonify({
         'success': True,
@@ -224,3 +231,4 @@ def generate_title(chat_id):
         'success': True,
         'title': new_title
     })
+

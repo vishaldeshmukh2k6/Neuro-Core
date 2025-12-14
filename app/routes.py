@@ -409,6 +409,108 @@ def get_available_models():
 
 
 
+@bp.get("/ollama/models")
+def get_ollama_models():
+    """Get installed Ollama models"""
+    try:
+        import requests
+        response = requests.get('http://localhost:11434/api/tags')
+        if response.status_code == 200:
+            data = response.json()
+            models = []
+            for model in data.get('models', []):
+                models.append({
+                    'name': model['name'],
+                    'size': f"{model['size'] // (1024**3):.1f}GB" if model['size'] > 0 else 'Unknown',
+                    'modified': model['modified_at'][:10] if 'modified_at' in model else 'Unknown'
+                })
+            return jsonify({'success': True, 'models': models})
+        else:
+            return jsonify({'success': False, 'error': 'Ollama not running'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@bp.get("/ollama/info")
+def get_ollama_info():
+    """Get Ollama system info"""
+    try:
+        import psutil
+        import shutil
+        import requests
+        
+        # Get RAM info
+        ram = psutil.virtual_memory()
+        total_ram = f"{ram.total // (1024**3):.1f}GB"
+        
+        # Get disk info
+        disk = shutil.disk_usage('/')
+        free_storage = f"{disk.free // (1024**3):.1f}GB"
+        
+        # Calculate model storage usage
+        model_storage = 0
+        try:
+            response = requests.get('http://localhost:11434/api/tags')
+            if response.status_code == 200:
+                data = response.json()
+                for model in data.get('models', []):
+                    model_storage += model.get('size', 0)
+        except:
+            pass
+        
+        used_storage = f"{model_storage // (1024**3):.1f}GB"
+        usage_percent = int((model_storage / disk.total) * 100) if disk.total > 0 else 0
+        
+        return jsonify({
+            'success': True,
+            'ram': total_ram,
+            'free': free_storage,
+            'used': used_storage,
+            'usagePercent': usage_percent
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@bp.post("/ollama/pull")
+def pull_ollama_model():
+    """Pull/update Ollama model"""
+    data = request.get_json()
+    model = data.get('model', '').strip()
+    
+    if not model:
+        return jsonify({'success': False, 'error': 'Model name required'})
+    
+    try:
+        import requests
+        response = requests.post('http://localhost:11434/api/pull', 
+                               json={'name': model}, 
+                               timeout=300)
+        if response.status_code == 200:
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Pull failed'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@bp.post("/ollama/remove")
+def remove_ollama_model():
+    """Remove Ollama model"""
+    data = request.get_json()
+    model = data.get('model', '').strip()
+    
+    if not model:
+        return jsonify({'success': False, 'error': 'Model name required'})
+    
+    try:
+        import requests
+        response = requests.delete(f'http://localhost:11434/api/delete', 
+                                 json={'name': model})
+        if response.status_code == 200:
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Remove failed'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
 @bp.route('/favicon.ico')
 def favicon():
     return '', 204

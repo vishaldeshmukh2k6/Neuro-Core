@@ -386,17 +386,14 @@ function showNotification(message, type = 'info', duration = 3000) {
 
 // Typing indicator functions
 function showTypingIndicator() {
-  if (typingIndicator && !isTyping) {
+  if (!isTyping) {
     isTyping = true;
-    typingIndicator.classList.remove('hidden');
-    scrollToBottom();
   }
 }
 
 function hideTypingIndicator() {
-  if (typingIndicator && isTyping) {
+  if (isTyping) {
     isTyping = false;
-    typingIndicator.classList.add('hidden');
   }
 }
 
@@ -460,9 +457,6 @@ saveSettingsBtn?.addEventListener('click', () => {
     openaiKey: document.getElementById('openaiKey')?.value,
     geminiKey: document.getElementById('geminiKey')?.value,
     ollamaModel: document.getElementById('ollamaModel')?.value,
-    profileName: document.getElementById('profileName')?.value,
-    profileEmail: document.getElementById('profileEmail')?.value,
-    profileMobile: document.getElementById('profileMobile')?.value,
     autoSave: document.getElementById('autoSave')?.checked,
     soundNotif: document.getElementById('soundNotif')?.checked
   };
@@ -509,19 +503,54 @@ if (toggleSidebar) {
 
 
 
-// Mobile menu with enhanced animation
-mobileMenuBtn?.addEventListener('click', () => {
-  if (sidebar) {
-    sidebar.classList.toggle('hidden');
-    sidebar.classList.toggle('flex');
 
-    // Add slide animation for mobile
-    if (!sidebar.classList.contains('hidden')) {
-      sidebar.style.transform = 'translateX(-100%)';
+mobileMenuBtn?.addEventListener('click', () => {
+  const overlay = document.getElementById('mobileOverlay');
+  
+  if (sidebar) {
+    const isHidden = sidebar.classList.contains('hidden');
+    
+    if (isHidden) {
+      // Show sidebar
+      sidebar.classList.remove('hidden');
+      sidebar.classList.add('flex');
+      sidebar.classList.remove('-translate-x-full');
+      overlay?.classList.remove('hidden');
+    } else {
+      // Hide sidebar
+      sidebar.classList.add('-translate-x-full');
+      overlay?.classList.add('hidden');
       setTimeout(() => {
-        sidebar.style.transform = 'translateX(0)';
-      }, 10);
+        sidebar.classList.add('hidden');
+        sidebar.classList.remove('flex');
+      }, 300);
     }
+  }
+});
+
+// Close sidebar when clicking overlay
+document.getElementById('mobileOverlay')?.addEventListener('click', () => {
+  const overlay = document.getElementById('mobileOverlay');
+  if (sidebar && !sidebar.classList.contains('hidden')) {
+    sidebar.classList.add('-translate-x-full');
+    overlay?.classList.add('hidden');
+    setTimeout(() => {
+      sidebar.classList.add('hidden');
+      sidebar.classList.remove('flex');
+    }, 300);
+  }
+});
+
+// Close sidebar when clicking close button
+document.getElementById('closeSidebarBtn')?.addEventListener('click', () => {
+  const overlay = document.getElementById('mobileOverlay');
+  if (sidebar && !sidebar.classList.contains('hidden')) {
+    sidebar.classList.add('-translate-x-full');
+    overlay?.classList.add('hidden');
+    setTimeout(() => {
+      sidebar.classList.add('hidden');
+      sidebar.classList.remove('flex');
+    }, 300);
   }
 });
 
@@ -559,11 +588,10 @@ loginBtn?.addEventListener('click', () => {
   window.location.href = '/auth';
 });
 
-// Load saved settings on page load
-document.addEventListener('DOMContentLoaded', () => {
+// Load saved settings and user data on page load
+document.addEventListener('DOMContentLoaded', async () => {
   const settingsToLoad = [
-    'openaiKey', 'geminiKey', 'ollamaModel', 'profileName',
-    'profileEmail', 'profileMobile', 'autoSave', 'soundNotif'
+    'openaiKey', 'geminiKey', 'ollamaModel', 'autoSave', 'soundNotif'
   ];
 
   settingsToLoad.forEach(setting => {
@@ -578,6 +606,24 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
+
+  // Load user profile data
+  try {
+    const response = await fetch('/user-status');
+    const data = await response.json();
+    
+    if (data.user && !data.user.is_guest) {
+      const profileName = document.getElementById('profileName');
+      const profileEmail = document.getElementById('profileEmail');
+      const profileMobile = document.getElementById('profileMobile');
+      
+      if (profileName) profileName.value = data.user.name || '';
+      if (profileEmail) profileEmail.value = data.user.email || '';
+      if (profileMobile) profileMobile.value = data.user.mobile || '';
+    }
+  } catch (error) {
+    console.error('Failed to load user profile data:', error);
+  }
 });
 
 // Keyboard shortcuts
@@ -671,6 +717,17 @@ function renderMarkdown(md) {
   const wrapper = document.createElement('div');
   wrapper.className = 'prose dark:prose-invert max-w-none markdown relative';
   wrapper.innerHTML = html;
+  wrapper.querySelectorAll('pre').forEach((pre) => {
+    pre.classList.add('overflow-x-auto', 'max-w-full', 'whitespace-pre-wrap', 'break-words');
+    pre.style.maxWidth = 'calc(100vw - 2rem)';
+  });
+  wrapper.querySelectorAll('code').forEach((code) => {
+    code.classList.add('break-words', 'whitespace-pre-wrap');
+    if (code.parentElement.tagName === 'PRE') {
+      code.style.maxWidth = '100%';
+      code.style.wordBreak = 'break-all';
+    }
+  });
   wrapper.querySelectorAll('pre code').forEach((block) => {
     hljs.highlightElement(block);
     const btn = document.createElement('button');
@@ -692,10 +749,10 @@ function addUserMessage(text, imageUrl) {
   if (!messages) return;
 
   const messageContainer = document.createElement('div');
-  messageContainer.className = 'flex gap-4 justify-end animate-slide-up message-container';
+  messageContainer.className = 'flex gap-2 sm:gap-4 justify-end animate-slide-up message-container mt-6';
 
   const messageGroup = document.createElement('div');
-  messageGroup.className = 'max-w-[75%] group';
+  messageGroup.className = 'max-w-[85%] sm:max-w-[75%] group';
 
   const bubble = document.createElement('div');
   const bubbleClass = layoutSettings.messageStyle === 'card'
@@ -704,7 +761,7 @@ function addUserMessage(text, imageUrl) {
       ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
       : 'bg-gradient-to-r from-gemini-blue to-blue-600 text-white';
 
-  bubble.className = `${bubbleClass} rounded-2xl rounded-tr-md px-6 py-4 shadow-lg hover:shadow-xl transition-all duration-200 message-content`;
+  bubble.className = `${bubbleClass} rounded-2xl rounded-tr-md px-4 sm:px-6 py-3 sm:py-4 shadow-lg hover:shadow-xl transition-all duration-200 message-content`;
   bubble.innerHTML = `<div class="whitespace-pre-line text-sm leading-relaxed">${text}</div>`;
 
   const timestamp = document.createElement('div');
@@ -714,8 +771,25 @@ function addUserMessage(text, imageUrl) {
   messageGroup.append(bubble, timestamp);
 
   const avatar = document.createElement('div');
-  avatar.className = 'w-10 h-10 rounded-full bg-gradient-to-r from-gemini-blue to-blue-600 flex items-center justify-center shadow-lg flex-shrink-0';
-  avatar.innerHTML = '<i class="fas fa-user text-white text-sm"></i>';
+  avatar.className = 'w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-r from-gemini-blue to-blue-600 flex items-center justify-center shadow-lg flex-shrink-0 text-white font-bold text-xs sm:text-sm';
+  
+  // Get user initials
+  fetch('/user-status')
+    .then(response => response.json())
+    .then(data => {
+      if (data.user && data.user.name) {
+        const nameParts = data.user.name.split(' ');
+        const initials = nameParts.length > 1 
+          ? nameParts[0][0].toUpperCase() + nameParts[nameParts.length - 1][0].toUpperCase()
+          : data.user.name[0].toUpperCase();
+        avatar.textContent = initials;
+      } else {
+        avatar.textContent = 'U';
+      }
+    })
+    .catch(() => {
+      avatar.textContent = 'U';
+    });
 
   messageContainer.append(messageGroup, avatar);
   messages.appendChild(messageContainer);
@@ -739,17 +813,17 @@ function addAssistantMessage(md) {
   if (!messages) return;
 
   const messageContainer = document.createElement('div');
-  messageContainer.className = 'flex gap-4 animate-slide-up message-container';
+  messageContainer.className = 'flex gap-2 sm:gap-4 animate-slide-up message-container';
 
   const avatar = document.createElement('div');
-  avatar.className = 'w-10 h-10 rounded-xl bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center shadow-lg flex-shrink-0 sparkle';
-  avatar.innerHTML = '<i class="fas fa-brain text-white text-sm"></i>';
+  avatar.className = 'w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center shadow-lg flex-shrink-0 sparkle';
+  avatar.innerHTML = '<i class="fas fa-brain text-white text-xs sm:text-sm"></i>';
 
   const messageGroup = document.createElement('div');
   messageGroup.className = 'flex-1 group';
 
   const bubble = document.createElement('div');
-  bubble.className = 'bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-6 py-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 message-bubble-advanced';
+  bubble.className = 'bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-4 sm:px-6 py-3 sm:py-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 message-bubble-advanced';
 
   const body = renderMarkdown(md);
   body.className = 'prose dark:prose-invert max-w-none markdown text-sm leading-relaxed';
@@ -788,28 +862,28 @@ function addAssistantStreamContainer() {
   if (!messages) return null;
 
   const messageContainer = document.createElement('div');
-  messageContainer.className = 'flex gap-4 animate-slide-up message-container';
+  messageContainer.className = 'flex gap-2 sm:gap-4 animate-slide-up message-container';
 
   const avatar = document.createElement('div');
-  avatar.className = 'w-10 h-10 rounded-xl bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center shadow-lg flex-shrink-0 sparkle';
-  avatar.innerHTML = '<i class="fas fa-brain text-white text-sm animate-pulse"></i>';
+  avatar.className = 'w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-r from-gemini-blue to-gemini-green flex items-center justify-center shadow-lg flex-shrink-0 sparkle';
+  avatar.innerHTML = '<i class="fas fa-brain text-white text-xs sm:text-sm"></i>';
 
   const messageGroup = document.createElement('div');
   messageGroup.className = 'flex-1 group';
 
   const bubble = document.createElement('div');
-  bubble.className = 'bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-6 py-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 message-bubble-advanced';
+  bubble.className = 'bg-white dark:bg-gray-800 rounded-2xl rounded-tl-md px-4 sm:px-6 py-3 sm:py-4 shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200 message-bubble-advanced';
 
   const body = document.createElement('div');
   body.className = 'prose dark:prose-invert max-w-none markdown relative text-sm leading-relaxed';
   body.innerHTML = `
     <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-      <div class="typing-dots">
-        <span></span>
-        <span></span>
-        <span></span>
+      <div class="flex space-x-1">
+        <div class="w-2 h-2 bg-gemini-blue rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+        <div class="w-2 h-2 bg-gemini-green rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+        <div class="w-2 h-2 bg-gemini-yellow rounded-full animate-bounce" style="animation-delay: 300ms"></div>
       </div>
-      <em>AI is thinking...</em>
+      <span>AI is thinking...</span>
     </div>
   `;
 
@@ -1402,6 +1476,193 @@ async function checkAvailableModels() {
 // Initialize model checking
 checkAvailableModels();
 
+// Ollama model management
+function loadOllamaModels() {
+  fetch('/ollama/models')
+    .then(response => response.json())
+    .then(data => {
+      const container = document.getElementById('installedModels');
+      if (data.success && data.models) {
+        container.innerHTML = data.models.map(model => `
+          <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border">
+            <div class="flex-1">
+              <div class="font-medium text-sm text-gray-900 dark:text-white">${model.name}</div>
+              <div class="text-xs text-gray-500">${model.size} • Modified ${model.modified}</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="updateModel('${model.name}')" class="p-1 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded" title="Update">
+                <i class="fas fa-sync text-xs"></i>
+              </button>
+              <button onclick="removeModel('${model.name}')" class="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded" title="Remove">
+                <i class="fas fa-trash text-xs"></i>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      } else {
+        container.innerHTML = '<div class="text-sm text-gray-500 text-center py-4">No models found</div>';
+      }
+    })
+    .catch(() => {
+      document.getElementById('installedModels').innerHTML = '<div class="text-sm text-red-500 text-center py-4">Failed to load models</div>';
+    });
+}
+
+function loadSystemInfo() {
+  fetch('/ollama/info')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById('usedStorage').textContent = data.used || '--';
+        document.getElementById('freeStorage').textContent = data.free || '--';
+        document.getElementById('totalRAM').textContent = data.ram || '--';
+        
+        // Update storage bar
+        if (data.usagePercent) {
+          document.getElementById('storageBar').style.width = data.usagePercent + '%';
+          document.getElementById('storageText').textContent = data.usagePercent + '% used';
+        }
+      }
+    })
+    .catch(() => {});
+}
+
+function pullModel(modelName) {
+  if (!modelName.trim()) return;
+  
+  const btn = document.getElementById('pullModelBtn');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner animate-spin mr-1"></i>Pulling...';
+  btn.disabled = true;
+  
+  fetch('/ollama/pull', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: modelName })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      showNotification(`✅ ${modelName} pulled successfully`, 'success');
+      document.getElementById('pullModelName').value = '';
+      loadOllamaModels();
+    } else {
+      showNotification(`❌ Failed to pull ${modelName}: ${data.error}`, 'error');
+    }
+  })
+  .catch(() => {
+    showNotification(`❌ Failed to pull ${modelName}`, 'error');
+  })
+  .finally(() => {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+  });
+}
+
+function updateModel(modelName) {
+  showConfirmModal(`Update ${modelName}?`, () => {
+    fetch('/ollama/pull', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: modelName })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showNotification(`✅ ${modelName} updated`, 'success');
+        loadOllamaModels();
+      } else {
+        showNotification(`❌ Update failed: ${data.error}`, 'error');
+      }
+    });
+  });
+}
+
+function removeModel(modelName) {
+  showConfirmModal(`Remove ${modelName}?`, () => {
+    fetch('/ollama/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: modelName })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showNotification(`🗑️ ${modelName} removed`, 'success');
+        loadOllamaModels();
+      } else {
+        showNotification(`❌ Remove failed: ${data.error}`, 'error');
+      }
+    });
+  });
+}
+
+// Event listeners
+document.getElementById('refreshModels')?.addEventListener('click', () => {
+  loadOllamaModels();
+  loadSystemInfo();
+});
+
+document.getElementById('pullModelBtn')?.addEventListener('click', () => {
+  const dropdown = document.getElementById('modelDropdown');
+  const custom = document.getElementById('customModelName');
+  const modelName = dropdown?.value || custom?.value;
+  if (modelName) {
+    pullModel(modelName);
+    dropdown.value = '';
+    custom.value = '';
+  }
+});
+
+document.getElementById('customModelName')?.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    pullModel(e.target.value);
+    e.target.value = '';
+  }
+});
+
+// Load on settings open
+document.querySelectorAll('.settings-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    if (tab.dataset.tab === 'llm') {
+      setTimeout(() => {
+        loadOllamaModels();
+        loadSystemInfo();
+      }, 100);
+    }
+  });
+});
+
+// Model selection functionality
+const modelSelect = document.getElementById('modelSelect');
+if (modelSelect) {
+  // Load saved model
+  const savedModel = localStorage.getItem('selectedModel') || 'llama3.2:1b';
+  modelSelect.value = savedModel;
+  
+  modelSelect.addEventListener('change', async (e) => {
+    const selectedModel = e.target.value;
+    
+    // Check if API key is required
+    if (selectedModel.startsWith('gpt-') || selectedModel.startsWith('gemini-')) {
+      const provider = selectedModel.startsWith('gpt-') ? 'openai' : 'gemini';
+      const keyName = provider === 'openai' ? 'openaiKey' : 'geminiKey';
+      const apiKey = localStorage.getItem(keyName);
+      
+      if (!apiKey) {
+        showNotification(`❌ ${provider.toUpperCase()} API key required. Please add it in Settings.`, 'error', 4000);
+        // Revert to previous selection
+        modelSelect.value = localStorage.getItem('selectedModel') || 'llama3.2:1b';
+        return;
+      }
+    }
+    
+    localStorage.setItem('selectedModel', selectedModel);
+    const modelName = selectedModel.includes(':') ? selectedModel.split(':')[0] : selectedModel;
+    showNotification(`🤖 Switched to ${modelName}`, 'success', 2000);
+  });
+}
+
 // Enhanced loading screen completion
 window.addEventListener('load', () => {
   // Ensure all resources are loaded
@@ -1429,7 +1690,7 @@ window.addEventListener('load', () => {
         setTimeout(() => {
           loadingScreen.style.display = 'none';
           // Show welcome notification
-          showNotification('🎉 Welcome to Neuro-Core AI! Ready to help you.', 'success', 4000);
+
 
           // Focus on input
           if (promptEl) {
@@ -1802,7 +2063,7 @@ function enhancedSend(useStream = false) {
     }
 
     setTimeout(() => {
-      showNotification('🚀 Chat started! Welcome to Neuro-Core AI', 'success', 3000);
+
     }, 300);
   } else if (chatMessages && chatMessages.classList.contains('hidden')) {
     // Ensure chat messages are visible even if welcome screen was already hidden
@@ -1963,12 +2224,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Always show welcome screen by default
     showWelcomeScreen();
 
-    // Start tutorial after a delay for new users (guests only)
-    setTimeout(() => {
-      if (!isLoggedIn && document.getElementById('welcomeScreen')?.style.display !== 'none') {
-        startWelcomeTutorial();
-      }
-    }, 3000);
+
   }
 
   console.log('🎨 Advanced Gemini-style UI initialized successfully!');
@@ -2005,6 +2261,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   if (promptEl) {
+    // Auto-resize textarea
+    promptEl.addEventListener('input', () => {
+      promptEl.style.height = 'auto';
+      promptEl.style.height = Math.min(promptEl.scrollHeight, 120) + 'px';
+    });
+    
     promptEl.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
