@@ -21,4 +21,4 @@ SYSTEM_PROMPT = (
     "If a user asks you to fetch API data, do so and store it for future reference."
 )
 
-OLLAMA_MODEL = "llama3.2:1b"
+OLLAMA_MODEL = "llama3.2:3b"

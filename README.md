@@ -26,7 +26,7 @@ A powerful, memory-enabled AI chat application built with Flask and LangChain, f
 - **Framework**: Flask 2.3+
 - **Language**: Python 3.8+
 - **AI Framework**: LangChain 0.1+
-- **AI Model**: Ollama (llama3.2:1b)
+- **AI Model**: Ollama (llama3.2:3b)
 - **Session Management**: Flask Sessions
 - **File Handling**: Werkzeug
 - **HTTP Client**: Requests
@@ -85,7 +85,7 @@ curl -fsSL https://ollama.ai/install.sh | sh
 
 ### 2. Pull AI Model
 ```bash
-ollama pull llama3.2:1b
+ollama pull llama3.2:3b
 ```
 
 ### 3. Clone & Setup
@@ -135,7 +135,7 @@ Neuro-Core/
 │   Frontend      │    │    Backend      │    │   AI Engine     │
 │                 │    │                 │    │                 │
 │ • HTML/CSS/JS   │◄──►│ • Flask Routes  │◄──►│ • Ollama        │
-│ • TailwindCSS   │    │ • LangChain     │    │ • llama3.2:1b   │
+│ • TailwindCSS   │    │ • LangChain     │    │ • llama3.2:3b   │
 │ • Marked.js     │    │ • Memory System │    │ • Local Inference│
 │ • Highlight.js  │    │ • File Handler  │    │                 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
@@ -166,7 +166,7 @@ graph TD
     D --> K[Marked.js]
     D --> L[Highlight.js]
     
-    H --> M[llama3.2:1b Model]
+    H --> M[llama3.2:3b Model]
     I --> N[JSON Storage]
     
     style A fill:#4f46e5,stroke:#333,stroke-width:3px,color:#fff
@@ -178,13 +178,13 @@ graph TD
 ### Environment Variables
 ```bash
 FLASK_SECRET_KEY=your_secret_key_here
-OLLAMA_MODEL=llama3.2:1b
+OLLAMA_MODEL=llama3.2:3b
 ```
 
 ### Model Configuration
 Edit `app/config.py`:
 ```python
-OLLAMA_MODEL = "llama3.2:1b"  # Change model here
+OLLAMA_MODEL = "llama3.2:3b"  # Change model here
 SYSTEM_PROMPT = "Your custom prompt"
 ```
 

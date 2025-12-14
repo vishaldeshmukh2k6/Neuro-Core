@@ -1637,7 +1637,7 @@ document.querySelectorAll('.settings-tab').forEach(tab => {
 const modelSelect = document.getElementById('modelSelect');
 if (modelSelect) {
   // Load saved model
-  const savedModel = localStorage.getItem('selectedModel') || 'llama3.2:1b';
+  const savedModel = localStorage.getItem('selectedModel') || 'llama3.2:3b';
   modelSelect.value = savedModel;
   
   modelSelect.addEventListener('change', async (e) => {
@@ -1652,7 +1652,7 @@ if (modelSelect) {
       if (!apiKey) {
         showNotification(`❌ ${provider.toUpperCase()} API key required. Please add it in Settings.`, 'error', 4000);
         // Revert to previous selection
-        modelSelect.value = localStorage.getItem('selectedModel') || 'llama3.2:1b';
+        modelSelect.value = localStorage.getItem('selectedModel') || 'llama3.2:3b';
         return;
       }
     }
