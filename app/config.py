@@ -18,4 +18,4 @@ SYSTEM_PROMPT = (
     "Focus on the current conversation - don't assume context from previous unrelated discussions."
 )
 
-OLLAMA_MODEL = "llama3.2:1b"
+OLLAMA_MODEL = "llama3.2:3b"
