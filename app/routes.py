@@ -101,6 +101,14 @@ def clear():
     ChatMemoryManager.clear_active_chat_history()
     return jsonify({"ok": True})
 
+@bp.post("/new-chat")
+def new_chat():
+    """Clear active chat to force creation of new chat on next message"""
+    user_id = session.get('user_id', 'guest')
+    # Clear the active chat ID to force new chat creation
+    ChatSessionManager.clear_active_chat(user_id)
+    return jsonify({"success": True, "message": "Ready for new chat"})
+
 @bp.post("/upload")
 def upload():
     if not auth_manager.is_authenticated():
@@ -202,9 +210,10 @@ def chat():
     else:
         try:
             # Use LangChain for better user-friendly responses
-            # Convert history to LangChain format
+            # Convert history to LangChain format - limit to recent context only
             chat_history = []
-            for msg in history[:-1]:  # Exclude the current user message
+            recent_messages = history[-6:-1] if len(history) > 6 else history[:-1]  # Only last 5 exchanges
+            for msg in recent_messages:
                 if msg["role"] == "user":
                     chat_history.append({"role": "user", "content": msg["content"]})
                 elif msg["role"] == "assistant":
@@ -310,9 +319,10 @@ def stream():
     def ollama_stream():
         full_chunks = []
         try:
-            # Use LangChain for streaming
+            # Use LangChain for streaming - limit to recent context only
             chat_history = []
-            for msg in history[:-1]:  # Exclude the current user message
+            recent_messages = history[-6:-1] if len(history) > 6 else history[:-1]  # Only last 5 exchanges
+            for msg in recent_messages:
                 if msg["role"] == "user":
                     chat_history.append({"role": "user", "content": msg["content"]})
                 elif msg["role"] == "assistant":

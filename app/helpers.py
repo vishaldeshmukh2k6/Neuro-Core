@@ -7,23 +7,21 @@ from datetime import datetime
 from .chat_memory import ChatMemoryManager
 
 def get_memory_context():
-    """Get formatted memory context for AI"""
+    """Get formatted memory context for AI - only persistent info, not conversation topics"""
     memory = ChatMemoryManager.get_active_chat_memory()
     if not memory:
         return ""
     
     context_parts = []
+    # Only include basic personal info, not conversation topics
+    persistent_keys = ["name"]  # Only name persists across conversations
+    
     for key, value in memory.items():
-        if key not in ["files", "apis", "history", "lessons"]:  # Don't include complex structures in general memory context
+        if key in persistent_keys:
             context_parts.append(f"{key}: {value}")
     
-    # Add lessons if available
-    if "lessons" in memory and memory["lessons"]:
-        lessons_str = "; ".join(memory["lessons"])
-        context_parts.append(f"Learned Facts: {lessons_str}")
-    
     if context_parts:
-        return f"[Chat Memory: {', '.join(context_parts)}]\n\n"
+        return f"[User Info: {', '.join(context_parts)}]\n\n"
     return ""
 
 def update_memory(key: str, value: str):

@@ -66,12 +66,19 @@ function loadUserChats() {
     });
 }
 
-function createNewChat() {
+async function createNewChat() {
   console.log('Resetting to new chat state...');
 
   // Reset state
   activeChatId = null;
   currentChatId = null;
+
+  // Call backend to clear active chat session
+  try {
+    await fetch('/new-chat', { method: 'POST' });
+  } catch (error) {
+    console.error('Error clearing active chat:', error);
+  }
 
   // Reset UI
   const welcomeScreen = document.getElementById('welcomeScreen');

@@ -94,6 +94,15 @@ class ChatSessionManager:
                 session[user_key]['active_chat_id'] = None
         
         session.modified = True
+    
+    @staticmethod
+    def clear_active_chat(user_id=None):
+        """Clear the active chat ID to force new chat creation"""
+        user_key = ChatSessionManager.get_user_session_key(user_id)
+        if user_key not in session:
+            session[user_key] = {}
+        session[user_key]['active_chat_id'] = None
+        session.modified = True
 
 # API Routes
 @session_bp.route('/api/chats/new', methods=['POST'])
